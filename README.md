@@ -10,7 +10,7 @@
 
 <img src="./Screenshot/Screenshot.png" alt="App Screenshot" width="100%"/>
 
-🔗 **Live Demo**: [https://cineverse25.vercel.app](https://cineverse25.vercel.app)
+🔗 **Live Demo**: [https://cineverse25.netifly.app](https://cineverse25.netlify.app/)
 
 ---
 
