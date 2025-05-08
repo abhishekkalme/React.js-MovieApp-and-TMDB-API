@@ -4,7 +4,8 @@
 [![Vite](https://img.shields.io/badge/Vite-4.0-646CFF?logo=vite&logoColor)](https://vitejs.dev/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.1-38B2AC?logo=tailwindcss&logoColor)](https://tailwindcss.com/)
 [![TMDB API](https://img.shields.io/badge/TMDB-API-01B4E4?logo=themoviedatabase&logoColor)](https://developer.themoviedb.org/)
-[![License](https://img.shields.io/github/license/yourusername/cineverse)](LICENSE)
+[![License](https://img.shields.io/github/license/abhishekkalme/React.js-MovieApp-and-TMDB-API
+)](https://github.com/abhishekkalme/React.js-MovieApp-and-TMDB-API/tree/main?tab=MIT-1-ov-file#MIT-1-ov-file)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/b70d2d89-1fb9-4036-9f24-9a48d69e4ed8/deploy-status)](https://app.netlify.com/sites/cineverse25/deploys)
 
 
@@ -79,4 +80,5 @@ npm run dev
 ```
 Open http://localhost:5173 in your browser to view the project.
 
-#
+# 📄 License
+This project is licensed under the MIT License.
