@@ -1,10 +1,12 @@
 # 🍿CineVerse - Movie & TV Explorer
 
-[![React](https://img.shields.io/badge/React-19.0.0-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-4.0-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.1-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![TMDB API](https://img.shields.io/badge/TMDB-API-01B4E4?logo=themoviedatabase&logoColor=white)](https://developer.themoviedb.org/)
+[![React](https://img.shields.io/badge/React-19.0.0-61DAFB?logo=react&logoColor)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-4.0-646CFF?logo=vite&logoColor)](https://vitejs.dev/)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.1-38B2AC?logo=tailwindcss&logoColor)](https://tailwindcss.com/)
+[![TMDB API](https://img.shields.io/badge/TMDB-API-01B4E4?logo=themoviedatabase&logoColor)](https://developer.themoviedb.org/)
 [![License](https://img.shields.io/github/license/yourusername/cineverse)](LICENSE)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/b70d2d89-1fb9-4036-9f24-9a48d69e4ed8/deploy-status)](https://app.netlify.com/sites/cineverse25/deploys)
+
 
 > CineVerse is a modern, responsive web application built with **React.js** and **Vite** that lets users explore and discover movies and TV shows using **TMDB (The Movie Database) API**.
 
