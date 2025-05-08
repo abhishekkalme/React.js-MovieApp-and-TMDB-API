@@ -81,4 +81,4 @@ npm run dev
 Open http://localhost:5173 in your browser to view the project.
 
 # 📄 License
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License.](https://github.com/abhishekkalme/React.js-MovieApp-and-TMDB-API/tree/main?tab=MIT-1-ov-file#MIT-1-ov-file)
