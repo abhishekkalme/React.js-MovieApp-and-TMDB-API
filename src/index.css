@@ -3,15 +3,26 @@
 @import "slick-carousel/slick/slick.css";
 @import "slick-carousel/slick/slick-theme.css";
 
-
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Cinema Palette */
+  --color-primary: #E50914;
+  --color-secondary: #FFD700;
+  --color-accent: #00B4D8;
+  
+  --bg-deep: #050505;
+  --bg-card: #121212;
+  --bg-glass: rgba(20, 20, 20, 0.6);
+
+  --text-main: #FFFFFF;
+  --text-muted: #A3A3A3;
+
+  color-scheme: dark;
+  color: var(--text-main);
+  background-color: var(--bg-deep);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -19,22 +30,48 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--bg-deep);
+  overflow-x: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
 
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep); 
+}
+::-webkit-scrollbar-thumb {
+  background: #333; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
 }
 
 @layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0,0,0,0.7);
+  }
+
   .animate-fadeInUp {
     animation: fadeInUp 0.8s ease-out both;
   }
@@ -50,19 +87,45 @@
     }
   }
 }
-@layer utilities {
-  .animate-fadeInUp {
-    animation: fadeInUp 0.5s ease-out both;
-  }
+html, body {
+  overflow-x: hidden;
+}
 
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+@keyframes slideUpFade {
+  0% {
+    transform: translate(-50%, 40px);
+    opacity: 0;
   }
+  100% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.animate-slideUpFade {
+  animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-btn {
+  @apply text-xs text-white bg-zinc-800 hover:bg-zinc-700 border border-white/10 rounded-full px-4 py-1.5 transition duration-300;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+html, body {
+  overflow-x: hidden;
 }

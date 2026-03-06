@@ -2,12 +2,12 @@ import axios from "axios";
 
 const ACCESS_TOKEN = import.meta.env.VITE_TMDB_ACCESS_TOKEN;
 const BASE_URL = import.meta.env.VITE_TMDB_BASE_URL;
-
+import { TMDB_CONFIG } from "../constants";
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 const tmdb = axios.create({
-  baseURL: BASE_URL,
+  baseURL: TMDB_CONFIG.BASE_URL,
   headers: {
     Authorization: `Bearer ${ACCESS_TOKEN}`,
   },
@@ -24,13 +24,24 @@ export const fetchMovies = async (query = "", page = 1, type = "all") => {
 };
 
 export const fetchMovieDetails = async (movieId) => {
-  const response = await tmdb.get(`/movie/${movieId}`);
+  const response = await tmdb.get(`/movie/${movieId}`, {
+    params: {
+      append_to_response: "credits,videos,recommendations,release_dates,reviews,images,watch/providers",
+    },
+  });
   return response.data;
 };
 
-export const fetchMovieCredits = async (id) => {
-  const response = await tmdb.get(`/movie/${id}/credits`);
-  return response.data;
+export const fetchMovieCertifications = async (id) => {
+  try {
+    const response = await tmdb.get(`/movie/${id}/release_dates`);
+    const results = response.data.results;
+    const cert = results.find((r) => r.iso_3166_1 === "IN") || results.find((r) => r.iso_3166_1 === "US");
+    return cert?.release_dates?.[0]?.certification || "N/A";
+  } catch (error) {
+    console.error("Error fetching certifications:", error);
+    return "N/A";
+  }
 };
 
 export const fetchGenres = async (type = "movie") => {
@@ -50,34 +61,6 @@ export const fetchByCategory = async (
   }`;
   const res = await fetch(url);
   return res.json();
-};
-
-export const fetchMovieVideos = async (id) => {
-  const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${id}/videos?api_key=${API_KEY}`
-  );
-  return await res.json();
-};
-
-export const fetchMovieReviews = async (id) => {
-  const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${id}/reviews?api_key=${API_KEY}`
-  );
-  return await res.json();
-};
-
-export const fetchSimilarMovies = async (id) => {
-  const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${id}/similar?language=en-us&page=1&api_key=${API_KEY}`
-  );
-  return await res.json();
-};
-
-export const fetchMovieImages = async (id) => {
-  const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${id}/images?api_key=${API_KEY}`
-  );
-  return await res.json();
 };
 
 export const fetchTrendingMovies = async (page = 1) => {
@@ -102,45 +85,12 @@ export const fetchLatestMovies = async (page = 1) => {
 };
 
 export const fetchTvDetails = async (id) => {
-  const res = await fetch(
-    `https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}`
-  );
-  return await res.json();
-};
-
-export const fetchTvCredits = async (id) => {
-  const res = await fetch(
-    `https://api.themoviedb.org/3/tv/${id}/credits?api_key=${API_KEY}`
-  );
-  return await res.json();
-};
-
-export const fetchTvVideos = async (id) => {
-  const res = await fetch(
-    `https://api.themoviedb.org/3/tv/${id}/videos?api_key=${API_KEY}`
-  );
-  return await res.json();
-};
-
-export const fetchTvReviews = async (id) => {
-  const res = await fetch(
-    `https://api.themoviedb.org/3/tv/${id}/reviews?api_key=${API_KEY}`
-  );
-  return await res.json();
-};
-
-export const fetchSimilarTvShows = async (id) => {
-  const res = await fetch(
-    `https://api.themoviedb.org/3/tv/${id}/similar?api_key=${API_KEY}`
-  );
-  return await res.json();
-};
-
-export const fetchTvImages = async (id) => {
-  const res = await fetch(
-    `https://api.themoviedb.org/3/tv/${id}/images?api_key=${API_KEY}`
-  );
-  return await res.json();
+  const response = await tmdb.get(`/tv/${id}`, {
+    params: {
+      append_to_response: "credits,videos,recommendations,content_ratings",
+    },
+  });
+  return response.data;
 };
 
 export const fetchLatestTVShows = async (page = 1) => {
@@ -164,26 +114,9 @@ export const fetchTopRatedTV = async (page = 1) => {
   return response.data;
 };
 
-// Get TV Show Details (includes seasons info)
-export const fetchTVDetails = async (id) => {
-  const response = await tmdb.get(`/tv/${id}`);
-  return response.data;
-};
-
-// Get Episodes for a specific season
 export const fetchSeasonEpisodes = async (tvId, seasonNumber) => {
   const response = await tmdb.get(`/tv/${tvId}/season/${seasonNumber}`);
   return response.data;
-};
-// Assuming TV show ID is stored in `id`
-export const fetchWatchProviders = async () => {
-  const response = await fetch(
-    `https://api.themoviedb.org/3/tv/${id}/watch/providers?api_key=${
-      import.meta.env.VITE_TMDB_API_KEY
-    }`
-  );
-  const data = await response.json();
-  return data.results?.IN || {}; // Change 'IN' to 'US' or your region code
 };
 
 export const fetchMovieWatchProviders = async (movieId) => {
@@ -205,38 +138,127 @@ export const fetchMovieWatchProviders = async (movieId) => {
 };
 
 export const getTVDetails = async (id) => {
-  const res = await tmdb.get(`/tv/${id}?append_to_response=watch/providers`);
+  const res = await tmdb.get(
+    `/tv/${id}?append_to_response=videos,credits,images,reviews,recommendations,watch/providers`
+  );
   return res.data;
 };
 
-export const getTVCredits = async (id) => {
-  const res = await tmdb.get(`/tv/${id}/credits`);
-  return res.data;
+export const fetchUpcomingMovies = async (page = 1) => {
+  const response = await tmdb.get("/movie/upcoming", {
+    params: { page },
+  });
+  return response.data;
 };
 
-export const getTVRecommendations = async (id) => {
-  const res = await tmdb.get(`/tv/${id}/recommendations`);
-  return res.data;
-};
-
-export const getTVDetailsWithVideos = async (tvId) => {
-  const res = await axios.get(`${BASE_URL}/tv/${tvId}`, {
+export const fetchContentByProvider = async (providerId, type = "movie", page = 1) => {
+  const response = await tmdb.get(`/discover/${type}`, {
     params: {
-      api_key: API_KEY,
-      append_to_response: "videos",
+      with_watch_providers: providerId,
+      watch_region: "IN",
+      page,
     },
   });
-  return res.data;
+  return response.data;
 };
 
-export const getMovieDetailsWithVideos = async (movieId) => {
-  const res = await axios.get(`${BASE_URL}/movie/${movieId}`, {
+export const fetchAnimeMovies = async (page = 1, sortBy = "popularity.desc", genre = "16") => {
+  const response = await tmdb.get("/discover/movie", {
     params: {
-      api_key: API_KEY,
-      append_to_response: "videos",
+      with_genres: genre,
+      sort_by: sortBy === "trending" ? "popularity.desc" : sortBy,
+      page,
     },
   });
-  return res.data;
+  return response.data;
+};
+
+export const fetchAnimeTV = async (page = 1, sortBy = "popularity.desc", genre = "16") => {
+  const response = await tmdb.get("/discover/tv", {
+    params: {
+      with_genres: genre,
+      sort_by: sortBy === "trending" ? "popularity.desc" : sortBy,
+      page,
+    },
+  });
+  return response.data;
+};
+
+/**
+ * Utility to fetch results across TMDB pages to support a custom page size (e.g., 24 instead of 20).
+ */
+export const fetchByCustomPage = async (fetcher, customPage, customPageSize = 24) => {
+  const TPS = 20;
+  const start = (customPage - 1) * customPageSize;
+  const end = customPage * customPageSize;
+
+  const tpStart = Math.floor(start / TPS) + 1;
+  const tpEnd = Math.floor((end - 1) / TPS) + 1;
+
+  try {
+    const pagesToFetch = [];
+    for (let p = tpStart; p <= tpEnd; p++) {
+      pagesToFetch.push(fetcher(p));
+    }
+
+    const responses = await Promise.all(pagesToFetch);
+
+    // Combine results from all fetched TMDB pages
+    let allResults = [];
+    responses.forEach((res) => {
+      if (res && res.results) {
+        allResults = [...allResults, ...res.results];
+      }
+    });
+
+    // Calculate the slice window within the combined results
+    const offset = start - (tpStart - 1) * TPS;
+    const slicedResults = allResults.slice(offset, offset + customPageSize);
+
+    // Get total results from the first response to calculate total custom pages
+    const totalResults = responses[0]?.total_results || 0;
+    const totalPages = Math.ceil(totalResults / customPageSize);
+
+    return {
+      results: slicedResults,
+      total_pages: totalPages,
+      total_results: totalResults,
+    };
+  } catch (error) {
+    console.error("fetchByCustomPage error:", error);
+    return { results: [], total_pages: 0, total_results: 0 };
+  }
+};
+
+export const fetchAdvancedFilters = async ({
+  type = "movie",
+  genre = "",
+  language = "",
+  sortBy = "popularity.desc",
+  yearFrom = "",
+  yearTo = "",
+  provider = "",
+}) => {
+  const dateGteKey = type === "movie" ? "primary_release_date.gte" : "first_air_date.gte";
+  const dateLteKey = type === "movie" ? "primary_release_date.lte" : "first_air_date.lte";
+
+  const params = {
+    sort_by: sortBy,
+    with_genres: genre,
+    with_original_language: language,
+    [dateGteKey]: yearFrom ? `${yearFrom}-01-01` : "",
+    [dateLteKey]: yearTo ? `${yearTo}-12-31` : "",
+    with_watch_providers: provider,
+    watch_region: "IN",
+  };
+
+  try {
+    const response = await tmdb.get(`/discover/${type}`, { params });
+    return response.data;
+  } catch (error) {
+    console.error("fetchAdvancedFilters error:", error);
+    return { results: [], total_pages: 0, total_results: 0 };
+  }
 };
 
 export default tmdb;

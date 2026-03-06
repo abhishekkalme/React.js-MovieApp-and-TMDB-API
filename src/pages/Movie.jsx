@@ -1,149 +1,117 @@
 import React, { useEffect, useState } from "react";
-import {
-  fetchGenres,
-  fetchByCategory,
-  fetchLatestMovies,
-  fetchTopRatedMovies,
-  fetchTrendingMovies,
-} from "../api/tmdb";
-import MovieCard from "../components/MovieCard";
-import SkeletonCard from "../components/SkeletonCard";
-import Pagination from "../components/Pagination";
-import GenreFilter from "../components/GenreFilter";
 import { motion } from "framer-motion";
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      when: "beforeChildren",
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
-
-const MODES = {
-  TRENDING: "trending",
-  LATEST: "latest",
-  TOP_RATED: "top_rated",
-  GENRE: "genre",
-};
+import { fetchByCategory, fetchByCustomPage, fetchTrendingMovies, fetchTopRatedMovies, fetchLatestMovies } from "../api/tmdb";
+import MovieCard from "../components/MovieCard";
+import { SkeletonCard } from "../components/Skeletons";
+import CategorySelector from "../components/CategorySelector";
 
 const Movie = () => {
-  const [movie, setMovie] = useState([]);
+  const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [genres, setGenres] = useState([]);
-  const [selectedGenre, setSelectedGenre] = useState("");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [mode, setMode] = useState(MODES.TRENDING);
-
-  useEffect(() => {
-    if (mode === MODES.GENRE) {
-      const loadGenres = async () => {
-        const data = await fetchGenres("movie");
-        setGenres(data.genres);
-      };
-      loadGenres();
-    }
-  }, [mode]);
-
-  useEffect(() => {
-    setPage(1); // Reset page on filter/mode change
-  }, [selectedGenre, mode]);
+  const [hasMore, setHasMore] = useState(true);
+  const [filter, setFilter] = useState({ category: "trending", genreId: null, genreName: "" });
 
   useEffect(() => {
     const loadMovies = async () => {
       setLoading(true);
       try {
-        let data;
-        switch (mode) {
-          case MODES.GENRE:
-            data = await fetchByCategory("movie", selectedGenre, page);
-            break;
-          case MODES.LATEST:
-            data = await fetchLatestMovies(page);
-            break;
-          case MODES.TOP_RATED:
-            data = await fetchTopRatedMovies(page);
-            break;
-          case MODES.TRENDING:
-            data = await fetchTrendingMovies(page);
-            break;
-          default:
-            data = { results: [], total_pages: 1 };
+        let fetcher;
+        const { category, genreId } = filter;
+
+        if (genreId) {
+          fetcher = (p) => fetchByCategory("movie", genreId, p);
+        } else {
+          switch (category) {
+            case "latest":
+              fetcher = (p) => fetchLatestMovies(p);
+              break;
+            case "top_rated":
+              fetcher = (p) => fetchTopRatedMovies(p);
+              break;
+            case "trending":
+            default:
+              fetcher = (p) => fetchTrendingMovies(p);
+              break;
+          }
         }
-        setMovie(data.results);
-        setTotalPages(data.total_pages || 1);
-      } catch (err) {
-        console.error(err);
+
+        const data = await fetchByCustomPage(fetcher, page, 24);
+
+        if (data.results && data.results.length > 0) {
+          if (page === 1) {
+            setMovies(data.results);
+          } else {
+            setMovies((prev) => [...prev, ...data.results]);
+          }
+          setHasMore(page < data.total_pages);
+        } else {
+          setHasMore(false);
+        }
+      } catch (error) {
+        console.error("Error fetching movies:", error);
       } finally {
         setLoading(false);
       }
     };
-    loadMovies();
-  }, [selectedGenre, page, mode]);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [page]);
-  
+    loadMovies();
+  }, [page, filter]);
+
+  const handleCategoryChange = (newFilter) => {
+    setFilter(newFilter);
+    setPage(1);
+    setMovies([]);
+  };
+
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  };
 
   return (
-    <div className="min-h-screen px-4 py-18 bg-zinc-900 text-white">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-3xl font-bold">Movies</h1>
-        <div className="flex flex-wrap gap-2">
-          {Object.entries(MODES).map(([key, value]) => (
-            <button
-              key={value}
-              onClick={() => setMode(value)}
-              className={`px-3 py-1 rounded text-sm font-medium ${
-                mode === value ? "bg-blue-600" : "bg-zinc-700 hover:bg-zinc-600"
-              }`}
+    <div className="min-h-screen pt-24 px-6 md:px-12 bg-black text-white pb-20">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl md:text-4xl font-bold mb-8 flex items-center gap-3 text-white">
+          <span className="text-red-600">Explore</span> {filter.genreName || "Movies"}
+        </h1>
+
+        <CategorySelector type="movie" onCategoryChange={handleCategoryChange} />
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          {movies.map((movie, index) => (
+            <motion.div
+              key={`${movie.id}-${index}`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: (index % 12) * 0.05 }}
             >
-              {value
-                .replace("_", " ")
-                .replace(/\b\w/g, (c) => c.toUpperCase())}
-            </button>
+              <MovieCard movie={movie} type="movie" />
+            </motion.div>
           ))}
+          {loading && Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={`skeleton-${i}`} />)}
         </div>
+
+        {!loading && movies.length === 0 && (
+          <div className="text-center text-gray-500 mt-20 bg-[#1c1c1c]/50 p-10 rounded-2xl border border-white/5">
+            <h2 className="text-2xl font-bold mb-2">No movies found.</h2>
+            <p>Try refreshing the page.</p>
+          </div>
+        )}
+
+        {hasMore && movies.length > 0 && (
+          <div className="mt-12 flex justify-center">
+            <button
+              onClick={loadMore}
+              disabled={loading}
+              className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Loading..." : "Load More"}
+            </button>
+          </div>
+        )}
       </div>
-
-      {mode === MODES.GENRE && (
-        <GenreFilter
-          genres={genres}
-          selectedGenre={selectedGenre}
-          onSelect={setSelectedGenre}
-        />
-      )}
-
-      <motion.div
-        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {loading
-          ? Array.from({ length: 12 }).map((_, i) => (
-              <motion.div key={i} variants={itemVariants}>
-                <SkeletonCard />
-              </motion.div>
-            ))
-          : movie.map((movie) => (
-              <motion.div key={movie.id} variants={itemVariants}>
-                <MovieCard movie={movie} type="movie" />
-              </motion.div>
-            ))}
-      </motion.div>
-
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 };
