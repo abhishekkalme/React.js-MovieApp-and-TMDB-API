@@ -11,17 +11,31 @@ import sony from "../assets/sonyliv.png";
 import zee5 from "../assets/zee5.png";
 import paramount from "../assets/paramount.png";
 import hulu from "../assets/hulu.png";
+import disney from "../assets/disney.png";
+import appletv from "../assets/appletv.png";
+import peacock from "../assets/peacock.png";
+import discovery from "../assets/discovery.png";
+import hidive from "../assets/hidive.webp";
+import mxplayer from "../assets/mxplayer.png";
+import eros from "../assets/eros.png";
 
 const platforms = [
-    { id: 8, name: "Netflix", logo: netflix, glow: "bg-red-600" },
-    { id: 119, name: "Amazon Prime Video", logo: prime, glow: "bg-sky-500" },
-    { id: 1899, name: "Max", logo: max, glow: "bg-purple-500" },
-    { id: 283, name: "Crunchyroll", logo: crunchyroll, glow: "bg-orange-500" },
-    { id: 1112, name: "YouTube Premium", logo: youtube, glow: "bg-red-500" },
-    { id: 237, name: "Sony LIV", logo: sony, glow: "bg-pink-500" },
-    { id: 232, name: "ZEE5", logo: zee5, glow: "bg-yellow-400" },
-    { id: 531, name: "Paramount+", logo: paramount, glow: "bg-blue-500" },
-    { id: 15, name: "Hulu", logo: hulu, glow: "bg-green-500" }
+  { id: 8, name: "Netflix", logo: netflix, glow: "bg-red-600" },
+  { id: 119, name: "Amazon Prime Video", logo: prime, glow: "bg-sky-500" },
+  { id: 337, name: "Disney+", logo: disney, glow: "bg-blue-500" },
+  { id: 350, name: "Apple TV+", logo: appletv, glow: "bg-gray-500" },
+  { id: 1899, name: "HBO Max", logo: max, glow: "bg-purple-500" },
+  { id: 386, name: "Peacock", logo: peacock, glow: "bg-yellow-400" },
+  { id: 435, name: "Discovery+", logo: discovery, glow: "bg-blue-400" },
+  { id: 531, name: "Paramount+", logo: paramount, glow: "bg-blue-500" },
+  { id: 15, name: "Hulu", logo: hulu, glow: "bg-green-500" },
+  { id: 283, name: "Crunchyroll", logo: crunchyroll, glow: "bg-orange-500" },
+  { id: 430, name: "HIDIVE", logo: hidive, glow: "bg-indigo-500" },
+  { id: 237, name: "Sony LIV", logo: sony, glow: "bg-pink-500" },
+  { id: 232, name: "ZEE5", logo: zee5, glow: "bg-yellow-400" },
+  { id: 171, name: "MX Player", logo: mxplayer, glow: "bg-blue-500" },
+  { id: 188, name: "Eros Now", logo: eros, glow: "bg-red-500" },
+  { id: 1112, name: "YouTube Premium", logo: youtube, glow: "bg-red-500" }
 ];
 
 const PlatformSelector = () => {

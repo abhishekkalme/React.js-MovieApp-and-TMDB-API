@@ -175,6 +175,26 @@ const Navbar = () => {
               <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-red-900/20 blur-[120px] rounded-full"></div>
             </div>
 
+            <div className="absolute top-6 right-6 flex items-center gap-4 z-50">
+              {user && (
+                <Link to="/profile" onClick={() => setMenuOpen(false)} className="text-gray-300 hover:text-white transition relative group">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt="Profile" className="w-10 h-10 rounded-full object-cover border-2 border-transparent group-hover:border-red-500 transition-all shadow-md group-hover:shadow-[0_0_15px_rgba(220,38,38,0.5)]" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center font-bold text-sm border-2 border-transparent group-hover:border-white transition-all shadow-md group-hover:shadow-[0_0_15px_rgba(220,38,38,0.5)]">
+                      {user.username ? user.username.charAt(0).toUpperCase() : <FiUser size={18} />}
+                    </div>
+                  )}
+                </Link>
+              )}
+              <button
+                onClick={() => setMenuOpen(false)}
+                className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-gray-300 hover:text-white backdrop-blur-md transition-all border border-white/10"
+              >
+                <FiX size={24} />
+              </button>
+            </div>
+
             <motion.div
               className="relative z-10 flex flex-col items-center w-full max-w-sm mt-8"
               initial="hidden"

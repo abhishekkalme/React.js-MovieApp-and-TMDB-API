@@ -4,6 +4,7 @@ import { fetchMovies, fetchGenres, fetchAdvancedFilters } from "../api/tmdb";
 import MovieCard from "../components/MovieCard";
 import { SkeletonCard } from "../components/Skeletons";
 import { FiChevronDown } from "react-icons/fi";
+import { motion } from "framer-motion";
 
 // Reusable Select Component to match the mockup styling
 const CustomSelect = ({ label, options, value, onChange, className = "" }) => (

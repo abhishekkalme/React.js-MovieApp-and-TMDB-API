@@ -151,15 +151,35 @@ export const fetchUpcomingMovies = async (page = 1) => {
   return response.data;
 };
 
-export const fetchContentByProvider = async (providerId, type = "movie", page = 1) => {
-  const response = await tmdb.get(`/discover/${type}`, {
-    params: {
-      with_watch_providers: providerId,
-      watch_region: "IN",
-      page,
-    },
-  });
-  return response.data;
+export const fetchContentByProvider = async (
+  providerId,
+  type = "movie",
+  page = 1
+) => {
+  try {
+    const resIN = await tmdb.get(`/discover/${type}`, {
+      params: {
+        with_watch_providers: providerId,
+        watch_region: "IN",
+        page,
+      },
+    });
+
+    if (resIN.data.results.length > 0) return resIN.data;
+
+    const resUS = await tmdb.get(`/discover/${type}`, {
+      params: {
+        with_watch_providers: providerId,
+        watch_region: "US",
+        page,
+      },
+    });
+
+    return resUS.data;
+  } catch (error) {
+    console.error("Provider fetch error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 export const fetchAnimeMovies = async (page = 1, sortBy = "popularity.desc", genre = "16") => {

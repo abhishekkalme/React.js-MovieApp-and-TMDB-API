@@ -105,6 +105,10 @@ const Watch = () => {
     const [activeSeason, setActiveSeason] = useState(parseInt(seasonParam) || 1);
     const [isEpisodesExpanded, setIsEpisodesExpanded] = useState(false);
 
+    // Custom UI States
+    const [toastMessage, setToastMessage] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState(null);
+
     const timeoutRef = useRef(null);
 
     const isEpisode = type === "tv" || (type === "anime" && seasonParam);
@@ -160,18 +164,43 @@ const Watch = () => {
         }
     };
 
+    const showToast = (message) => {
+        setToastMessage(message);
+        setTimeout(() => setToastMessage(null), 3000);
+    };
+
     const handleNextEpisode = () => {
         const nextEp = episodes.find(ep => ep.episode_number === episode + 1);
+
         if (nextEp) {
             handleEpisodeClick(episode + 1);
-        } else {
-            alert("This is the last episode of the season.");
+            return;
         }
+
+        const nextSeason = details?.seasons?.find(
+            s => s.season_number === season + 1
+        );
+
+        if (nextSeason) {
+            setConfirmDialog({
+                title: "Season Complete",
+                message: `You've finished Season ${season}. Would you like to start Season ${season + 1}?`,
+                onConfirm: () => {
+                    setActiveSeason(activeSeason + 1);
+                    navigate(`/watch/${type}/${id}/${activeSeason + 1}/1`);
+                    setConfirmDialog(null);
+                },
+                onCancel: () => setConfirmDialog(null)
+            });
+            return;
+        }
+
+        showToast("You have reached the final episode of this series.");
     };
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(window.location.href);
-        alert("Link copied to clipboard!");
+        showToast("Link copied to clipboard!");
     };
 
 
@@ -224,6 +253,38 @@ const Watch = () => {
         startTimeout();
     };
 
+    useEffect(() => {
+        const handleFullscreenChange = async () => {
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+
+            if (isFullscreen) {
+                try {
+                    if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+                        await window.screen.orientation.lock("landscape");
+                    }
+                } catch (error) {
+                    console.error("Screen orientation lock failed:", error);
+                }
+            } else {
+                try {
+                    if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+                        window.screen.orientation.unlock();
+                    }
+                } catch (error) {
+                    console.error("Screen orientation unlock failed:", error);
+                }
+            }
+        };
+
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFullscreenChange);
+            document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+        };
+    }, []);
+
     if (loadingDetails) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-black">
@@ -234,9 +295,58 @@ const Watch = () => {
 
     const title = details?.title || details?.name || "Streaming";
     const isExternalOnly = selectedServer === "multiembed";
+    const currentEpisode = episodes.find(
+        (ep) => ep.episode_number === episode
+    );
 
     return (
         <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
+            <AnimatePresence>
+                {toastMessage && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                        className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-white text-black px-5 md:px-6 py-3 rounded-2xl md:rounded-full font-bold shadow-2xl flex items-center gap-3 border border-gray-200 w-[90vw] max-w-md md:w-max justify-center text-center text-[11px] sm:text-sm"
+                    >
+                        <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse flex-shrink-0"></div>
+                        <span>{toastMessage}</span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {confirmDialog && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-zinc-900 border border-white/10 p-6 sm:p-8 rounded-3xl max-w-sm w-full shadow-2xl"
+                        >
+                            <h3 className="text-lg sm:text-xl font-black mb-2 sm:mb-3">{confirmDialog.title}</h3>
+                            <p className="text-gray-400 text-xs sm:text-sm mb-6 sm:mb-8 leading-relaxed">
+                                {confirmDialog.message}
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={confirmDialog.onCancel}
+                                    className="flex-1 py-2.5 sm:py-3 rounded-xl bg-white/5 hover:bg-white/10 font-bold text-xs sm:text-sm transition-colors border border-white/5"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDialog.onConfirm}
+                                    className="flex-1 py-2.5 sm:py-3 rounded-xl bg-red-600 hover:bg-red-700 font-bold text-xs sm:text-sm text-white transition-colors shadow-lg shadow-red-600/20"
+                                >
+                                    Continue
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
             <div className="fixed inset-0 z-0">
                 <div
                     className="absolute inset-0 bg-cover bg-center scale-110 blur-3xl opacity-30"
@@ -270,40 +380,23 @@ const Watch = () => {
                         </div>
 
 
-                        <div className="hidden lg:flex flex-col gap-2 items-end">
-                            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Select Server</span>
-                            <div className="flex gap-2 p-1 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full">
-                                {STREAMING_SERVERS.slice(0, 9).map((server, idx) => (
-                                    <button
-                                        key={server.id}
-                                        onClick={() => setSelectedServer(server.id)}
-                                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${selectedServer === server.id
-                                            ? "bg-red-600 text-white shadow-lg shadow-red-600/40"
-                                            : "text-gray-400 hover:text-white"
-                                            }`}
-                                    >
-                                        Server {idx + 1}
-                                    </button>
-                                ))}
-
+                        <div className="flex flex-col gap-2 w-full md:w-auto md:min-w-[200px]">
+                            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider md:text-right">Select Server</span>
+                            <div className="relative group">
+                                <select
+                                    value={selectedServer}
+                                    onChange={(e) => setSelectedServer(e.target.value)}
+                                    className="w-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-red-500 transition-all appearance-none cursor-pointer text-white"
+                                >
+                                    {STREAMING_SERVERS.map((server, idx) => (
+                                        <option key={server.id} value={server.id} className="bg-zinc-900">
+                                            Server {idx + 1}
+                                        </option>
+                                    ))}
+                                </select>
+                                <FiChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
                             </div>
                         </div>
-                    </div>
-
-
-                    <div className="lg:hidden flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                        {STREAMING_SERVERS.map((server, idx) => (
-                            <button
-                                key={server.id}
-                                onClick={() => setSelectedServer(server.id)}
-                                className={`rounded-full border px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${selectedServer === server.id
-                                    ? "border-red-500 bg-red-600 text-white shadow-lg shadow-red-600/20"
-                                    : "border-white/10 bg-white/5 backdrop-blur-md text-gray-400"
-                                    }`}
-                            >
-                                Server {idx + 1}
-                            </button>
-                        ))}
                     </div>
                 </motion.header>
 
@@ -363,23 +456,7 @@ const Watch = () => {
                             )}
 
 
-                            {!isExternalOnly && isEpisode && !isLoading && (
-                                <div className="absolute inset-x-0 bottom-0 p-6 flex justify-between items-center bg-gradient-to-t from-black/80 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                                    <button
-                                        onClick={handlePrevEpisode}
-                                        disabled={episode <= 1}
-                                        className={`pointer-events-auto flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl text-xs font-bold transition-all ${episode <= 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-red-600 hover:border-red-500"}`}
-                                    >
-                                        <FiChevronLeft /> Previous
-                                    </button>
-                                    <button
-                                        onClick={handleNextEpisode}
-                                        className="pointer-events-auto flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl text-xs font-bold transition-all hover:bg-red-600 hover:border-red-500"
-                                    >
-                                        Next <FiChevronRight />
-                                    </button>
-                                </div>
-                            )}
+
 
                             {!isExternalOnly && isLoading && (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm">
@@ -412,6 +489,49 @@ const Watch = () => {
                             )}
                         </motion.section>
 
+                        {!isExternalOnly && isEpisode && (
+                            <div className="flex items-center justify-between bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-3 sm:p-4">
+
+                                {/* Previous */}
+                                <button
+                                    onClick={handlePrevEpisode}
+                                    disabled={episode <= 1}
+                                    className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${episode <= 1
+                                        ? "opacity-30 cursor-not-allowed bg-black/40"
+                                        : "bg-white/10 hover:bg-red-600 border border-white/10 hover:border-red-500"
+                                        }`}
+                                >
+                                    <FiChevronLeft />
+                                    <span className="hidden sm:inline">Previous</span>
+                                </button>
+
+                                {/* Episode Info */}
+                                <button
+                                    onClick={() => document.getElementById('episode-guide')?.scrollIntoView({ behavior: 'smooth' })}
+                                    className="flex flex-col items-center px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold bg-white/5 border border-white/10 text-gray-300 max-w-[140px] sm:max-w-[220px] text-center hover:bg-white/10 transition-colors w-full"
+                                >
+
+                                    <span className="text-gray-300">
+                                        S{season} • E{episode}
+                                    </span>
+
+                                    <span className="text-gray-400 text-[11px] sm:text-xs truncate w-full">
+                                        {currentEpisode?.name || "Loading..."}
+                                    </span>
+
+                                </button>
+
+                                {/* Next */}
+                                <button
+                                    onClick={handleNextEpisode}
+                                    className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-white/10 hover:bg-red-600 border border-white/10 hover:border-red-500"
+                                >
+                                    <span className="hidden sm:inline">Next</span>
+                                    <FiChevronRight />
+                                </button>
+
+                            </div>
+                        )}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -454,7 +574,7 @@ const Watch = () => {
                                     </button>
                                 )}
                                 <button
-                                    onClick={() => alert("Issue reported! Our team will look into it. Thank you for your feedback.")}
+                                    onClick={() => showToast("Issue reported! Our team will look into it. Thank you for your feedback.")}
                                     className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/10 border border-white/20 text-white text-sm font-black hover:bg-white/20 transition-all"
                                 >
                                     Report Issue
@@ -468,7 +588,7 @@ const Watch = () => {
                         </motion.div>
                     </div>
 
-                    <div className="xl:col-span-1">
+                    <div className="xl:col-span-1" id="episode-guide">
                         {(type === "tv" || type === "anime") && details?.seasons && (
                             <motion.div
                                 initial={{ opacity: 0, x: 20 }}
