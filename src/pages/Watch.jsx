@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { FiLoader, FiMonitor, FiRefreshCw, FiArrowLeft, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { fetchMovieDetails, fetchTvDetails, fetchSeasonEpisodes } from "../api/tmdb";
 import { FiStar, FiChevronDown } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
 
 
 const STREAMING_SERVERS = [
