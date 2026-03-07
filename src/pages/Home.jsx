@@ -10,6 +10,7 @@ import { FiPlay, FiX, FiAlertTriangle, FiChevronLeft, FiChevronRight, FiShare2, 
 import { FaImdb } from "react-icons/fa";
 import PlatformSelector from "../components/PlatformSelector";
 import { SavedContext } from "../context/SavedContext";
+import { WatchedContext } from "../context/WatchedContext";
 import { HeroSkeleton, RowSkeleton } from "../components/Skeletons";
 import { ShareModal } from "../components/Modals";
 import CertificationBadge from "../components/CertificationBadge";
@@ -32,6 +33,7 @@ const Home = () => {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [shareData, setShareData] = useState({ title: "", id: "" });
   const { toggleSave, isSaved } = useContext(SavedContext);
+  const { watched, clearWatched, removeFromWatched } = useContext(WatchedContext);
   const sliderRef = useRef(null);
 
   useEffect(() => {
@@ -361,6 +363,15 @@ const Home = () => {
       <PlatformSelector />
 
       <div className="flex flex-col gap-8 pb-10">
+        {watched.length > 0 && (
+          <Row
+            title="Continue Watching"
+            items={watched.slice(0, 15)}
+            loading={loading}
+            onRemoveItem={removeFromWatched}
+            onClearAll={clearWatched}
+          />
+        )}
         <Row title="Trending Now" items={trendingMovies} loading={loading} />
         <Row title="Top Rated Movies" items={topRatedMovies} loading={loading} />
         <Row title="Upcoming Movies" items={upcomingMovies} loading={loading} />

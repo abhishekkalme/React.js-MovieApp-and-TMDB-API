@@ -4,6 +4,8 @@ import { FiLoader, FiMonitor, FiRefreshCw, FiArrowLeft, FiChevronLeft, FiChevron
 import { fetchMovieDetails, fetchTvDetails, fetchSeasonEpisodes } from "../api/tmdb";
 import { FiStar, FiChevronDown } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { useContext } from "react";
+import { WatchedContext } from "../context/WatchedContext";
 
 
 const STREAMING_SERVERS = [
@@ -108,6 +110,7 @@ const Watch = () => {
     // Custom UI States
     const [toastMessage, setToastMessage] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState(null);
+    const { addToWatched } = useContext(WatchedContext);
 
     const timeoutRef = useRef(null);
 
@@ -117,25 +120,37 @@ const Watch = () => {
     const isAnime = type === "anime";
     const dub = new URLSearchParams(location.search).get("dub") === "true";
 
-    useEffect(() => {
-        const getDetails = async () => {
-            setLoadingDetails(true);
-            try {
-                let data;
-                if (type === "movie") {
-                    data = await fetchMovieDetails(id);
-                } else if (type === "tv" || type === "anime") {
-                    data = await fetchTvDetails(id);
-                }
-                setDetails(data);
-            } catch (error) {
-                console.error("Error fetching details:", error);
-            } finally {
-                setLoadingDetails(false);
+    const getDetails = useCallback(async () => {
+        setLoadingDetails(true);
+        try {
+            let data;
+            if (type === "movie") {
+                data = await fetchMovieDetails(id);
+            } else if (type === "tv" || type === "anime") {
+                data = await fetchTvDetails(id);
             }
-        };
-        getDetails();
+            setDetails(data);
+        } catch (error) {
+            console.error("Error fetching details:", error);
+        } finally {
+            setLoadingDetails(false);
+        }
     }, [id, type]);
+
+    useEffect(() => {
+        getDetails();
+    }, [getDetails]);
+
+    // Update watch history on mount and when episode/season changes
+    useEffect(() => {
+        if (details) {
+            addToWatched(
+                { ...details, media_type: type === "movie" ? "movie" : "tv" },
+                isEpisode ? season : null,
+                isEpisode ? episode : null
+            );
+        }
+    }, [details, season, episode, type, isEpisode, addToWatched]);
 
     useEffect(() => {
         if ((type === "tv" || type === "anime") && id) {

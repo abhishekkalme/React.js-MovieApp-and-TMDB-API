@@ -3,7 +3,7 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import MovieCard from "./MovieCard";
 import { RowSkeleton } from "./Skeletons";
 
-const Row = ({ title, items = [], type = "movie", loading = false }) => {
+const Row = ({ title, items = [], type = "movie", loading = false, onRemoveItem, onClearAll }) => {
   const rowRef = useRef(null);
 
   const scroll = (direction) => {
@@ -26,11 +26,19 @@ const Row = ({ title, items = [], type = "movie", loading = false }) => {
   return (
     <section className="my-10 relative">
 
-      <div className="px-6 md:px-12 mb-4">
+      <div className="px-6 md:px-12 mb-4 flex justify-between items-center">
         <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
           <span className="w-1 h-6 bg-red-600 rounded-full inline-block"></span>
           {title}
         </h2>
+        {onClearAll && (
+          <button
+            onClick={onClearAll}
+            className="text-sm font-semibold text-gray-400 hover:text-red-500 transition-colors px-3 py-1 rounded-md hover:bg-red-500/10"
+          >
+            Clear All
+          </button>
+        )}
       </div>
 
       <div className="relative">
@@ -51,7 +59,7 @@ const Row = ({ title, items = [], type = "movie", loading = false }) => {
               key={item.id}
               className="flex-shrink-0 w-[140px] md:w-[180px]"
             >
-              <MovieCard movie={item} type={type} />
+              <MovieCard movie={item} type={type} onRemove={onRemoveItem} />
             </div>
           ))}
         </div>

@@ -2,14 +2,16 @@ import React, { useState, useContext } from "react";
 import { motion } from "framer-motion";
 import { AuthContext } from "../context/AuthContext";
 import { SavedContext } from "../context/SavedContext";
+import { WatchedContext } from "../context/WatchedContext";
 import MovieCard from "../components/MovieCard";
 import { PRESET_AVATARS, MESSAGES } from "../constants";
 import { Link } from "react-router-dom";
-import { FiEdit3, FiGlobe, FiGrid, FiSettings, FiCheck } from "react-icons/fi";
+import { FiEdit3, FiGlobe, FiGrid, FiSettings, FiCheck, FiClock } from "react-icons/fi";
 
 const Profile = () => {
   const { user, updateProfile } = useContext(AuthContext);
   const { savedItems } = useContext(SavedContext);
+  const { watched, clearWatched, removeFromWatched } = useContext(WatchedContext);
 
   const [activeTab, setActiveTab] = useState("mylist");
   const [isEditing, setIsEditing] = useState(false);
@@ -120,6 +122,12 @@ const Profile = () => {
             <FiGrid /> My WatchList ({savedItems.length})
           </button>
           <button
+            onClick={() => setActiveTab("history")}
+            className={`font-black uppercase tracking-widest text-xs pb-4 transition flex items-center gap-2 ${activeTab === "history" ? "text-red-500 border-b-2 border-red-500" : "text-gray-500 hover:text-white"}`}
+          >
+            <FiClock /> Watch History ({watched.length})
+          </button>
+          <button
             onClick={() => setActiveTab("settings")}
             className={`font-black uppercase tracking-widest text-xs pb-4 transition flex items-center gap-2 ${activeTab === "settings" ? "text-red-500 border-b-2 border-red-500" : "text-gray-500 hover:text-white"}`}
           >
@@ -153,6 +161,48 @@ const Profile = () => {
             )}
           </div>
         )}
+
+        {activeTab === "history" && (
+          <div>
+            {watched.length > 0 ? (
+              <>
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={clearWatched}
+                    className="text-sm font-bold text-gray-400 hover:text-red-500 transition border border-white/10 hover:border-red-500/50 px-4 py-2 rounded-lg bg-zinc-900/50"
+                  >
+                    Clear History
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                  {watched.map((item) => (
+                    <MovieCard
+                      key={item.id}
+                      movie={item}
+                      type={item.media_type || (item.title ? "movie" : "tv")}
+                      onRemove={removeFromWatched}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-24 bg-zinc-900/20 rounded-3xl border border-dashed border-white/10 flex flex-col items-center">
+                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-gray-600 mb-6">
+                  <FiClock size={32} />
+                </div>
+                <h3 className="text-xl font-bold mb-2">No watch history</h3>
+                <p className="text-gray-500 text-sm max-w-xs mb-8">Start exploring and watching movies to build your history.</p>
+                <Link
+                  to="/search"
+                  className="flex items-center gap-2 bg-red-600/10 text-red-500 px-8 py-3.5 rounded-2xl font-black border border-red-600/30 hover:bg-red-600 hover:text-white transition-all hover:scale-105"
+                >
+                  Explore New Titles
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
 
         {activeTab === "settings" && (
           <div className="bg-zinc-900/40 p-8 rounded-xl border border-white/5 max-w-2xl">

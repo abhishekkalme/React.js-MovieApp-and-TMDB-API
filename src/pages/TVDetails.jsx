@@ -91,12 +91,12 @@ const TVDetails = () => {
         </div>
 
 
-        <div className="absolute inset-0 flex flex-col justify-end px-6 md:px-12 pb-12">
+        <div className="absolute inset-0 flex flex-col justify-end px-6 md:px-12 ">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-4xl"
+            className="max-w-4xl mt-auto"
           >
             <h1 className="text-4xl md:text-7xl font-bold mb-6 tracking-tight drop-shadow-2xl">
               {tv.name}
