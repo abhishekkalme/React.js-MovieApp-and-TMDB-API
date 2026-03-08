@@ -90,7 +90,7 @@ export const ShareModal = ({ isOpen, onClose, title, url }) => {
                             Streaming shouldn't cost a fortune. Help us stick it to the big corps - share the freedom!
                         </p>
                         <div className="mt-4 inline-block bg-white/5 px-4 py-1.5 rounded-full text-xs font-medium text-gray-300 border border-white/10">
-                            Shares: <span className="text-white font-bold ml-1">51.8k</span>
+                            Shares: <span className="text-white font-bold ml-1">1k</span>
                         </div>
                     </div>
 

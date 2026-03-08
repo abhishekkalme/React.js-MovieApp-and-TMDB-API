@@ -334,7 +334,7 @@ const Home = () => {
                     onClick={() => {
                       setShowWarning(false);
                     }}
-                    className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-yellow-600/20"
+                    className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 rounded-full transition shadow-lg shadow-yellow-600/20"
                   >
                     Got It, I'll turn Shields off
                   </button>
@@ -342,7 +342,7 @@ const Home = () => {
                     href="https://www.google.com/chrome/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full bg-zinc-800 hover:bg-zinc-700 text-green-400 border border-green-500/30 font-bold py-3 rounded-xl transition flex items-center justify-center gap-2"
+                    className="w-full bg-zinc-800 hover:bg-zinc-700 text-green-400 border border-green-500/30 font-bold py-3 rounded-full transition flex items-center justify-center gap-2"
                   >
                     <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/Google_Chrome_icon_%282011%29.png" alt="Chrome Logo" className="w-5 h-5" /> Get Google Chrome
                   </a>

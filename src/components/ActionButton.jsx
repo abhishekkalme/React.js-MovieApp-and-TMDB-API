@@ -9,7 +9,7 @@ const ActionButton = ({
     active = false,
     title = ''
 }) => {
-    const baseStyles = "h-12 flex items-center justify-center gap-2 px-6 rounded-xl font-bold transition-all transition-colors duration-300 transform active:scale-95 shadow-lg border";
+    const baseStyles = "h-12 flex items-center justify-center gap-2 px-6 rounded-full font-bold transition-all transition-colors duration-300 transform active:scale-95 shadow-lg border";
 
     const variants = {
         primary: "bg-white text-black border-transparent hover:bg-gray-200",

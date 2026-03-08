@@ -8,10 +8,16 @@ const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500/";
 const MovieCard = ({ movie, type = "movie", onRemove }) => {
   const getWatchLink = () => {
     const mediaType = movie.media_type || type;
+    // For TV shows with progress
     if (movie.lastSeason && movie.lastEpisode) {
       return `/watch/${mediaType}/${movie.id}/${movie.lastSeason}/${movie.lastEpisode}`;
     }
-    return `/watch/${mediaType}/${movie.id}`;
+    // For movies in history (Continue Watching/Profile history) navigate directly to player
+    if (onRemove && mediaType === "movie") {
+      return `/watch/movie/${movie.id}`;
+    }
+    // Default to details page
+    return `/${mediaType}/${movie.id}`;
   };
 
   return (
