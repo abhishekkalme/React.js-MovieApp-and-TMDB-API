@@ -69,7 +69,7 @@ const buildSource = ({
         },
         vidcore: {
             movie: `https://vidcore.net/movie/${tmdbId}`,
-            tv: `https://vidcore.net/tv/${tmdbId}/${s}/${e}`,
+            tv: `https://vidcore.net/tv/${tmdbId}/${s}/${e}?nextButton=false`,
         },
         vidsrcembed: {
             movie: `https://vidsrc-embed.ru/embed/movie/${tmdbId}`,
