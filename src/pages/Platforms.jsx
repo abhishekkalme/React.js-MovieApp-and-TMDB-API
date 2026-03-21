@@ -25,7 +25,7 @@ import warner from "../assets/wb.png";
 import universal from "../assets/up.png";
 import a24 from "../assets/a24.svg";
 import paramount1 from "../assets/paramount.svg";
-import columbia from "../assets/columbia.jpg";
+import columbia from "../assets/Columbia.jpg";
 import century from "../assets/century.webp";
 import lionsgate from "../assets/lionsgate.png";
 import twdc from "../assets/twdc.svg";
