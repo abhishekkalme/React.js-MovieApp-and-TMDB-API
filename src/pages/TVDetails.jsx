@@ -7,8 +7,7 @@ import {
 } from "react-icons/fi";
 import { FaImdb } from "react-icons/fa";
 import { getTVDetails, fetchSeasonEpisodes } from "../api/tmdb";
-import { SavedContext } from "../context/SavedContext";
-import { WatchedContext } from "../context/WatchedContext";
+import { LibraryContext } from "../context/LibraryContext";
 import HorizontalScroll from "../components/HorizontalScroll";
 import { DetailsSkeleton } from "../components/Skeletons";
 import { ShareModal, TrailerModal } from "../components/Modals";
@@ -25,8 +24,10 @@ const TVDetails = () => {
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
-  const { toggleSave, isSaved } = useContext(SavedContext);
-  const { toggleWatched, isWatched } = useContext(WatchedContext);
+  const { toggleLibrary, isInLibrary } = useContext(LibraryContext);
+
+  const isSaved = isInLibrary(Number(id));
+
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -141,24 +142,18 @@ const TVDetails = () => {
                 <ActionButton
                   onClick={() => setIsTrailerOpen(true)}
                   icon={FiPlay}
-                  label="Watch Trailer"
+                  title="Watch Trailer"
                 />
               )}
 
               <ActionButton
-                onClick={() => toggleSave({ ...tv, media_type: "tv" })}
-                icon={isSaved(tv.id) ? FiCheck : FiPlus}
-                label={isSaved(tv.id) ? "Saved" : "Save"}
-                active={isSaved(tv.id)}
+                onClick={() => toggleLibrary({ ...tv, type: "tv" })}
+                icon={isSaved ? FiCheck : FiPlus}
+                title={isSaved ? "Saved to Library" : "Save to Library"}
+                active={isSaved}
               />
 
-              <ActionButton
-                onClick={() => toggleWatched({ ...tv, media_type: "tv" })}
-                icon={isWatched(tv.id) ? FiCheck : FiPlus}
-                label="Watched"
-                active={isWatched(tv.id)}
-                title={isWatched(tv.id) ? "Mark as Unwatched" : "Mark as Watched"}
-              />
+
 
               <ActionButton
                 onClick={() => setIsShareOpen(true)}

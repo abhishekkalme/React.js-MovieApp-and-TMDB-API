@@ -93,7 +93,7 @@ const FloatingActions = () => {
                 key={target.label}
                 href={target.href}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="block px-3 py-2 rounded-lg text-sm text-gray-200 hover:bg-zinc-800 transition"
               >
                 Share on {target.label}

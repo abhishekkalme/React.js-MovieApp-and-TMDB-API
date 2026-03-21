@@ -9,8 +9,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { FiPlay, FiX, FiAlertTriangle, FiChevronLeft, FiChevronRight, FiShare2, FiPlus, FiCheck } from "react-icons/fi";
 import { FaImdb } from "react-icons/fa";
 import PlatformSelector from "../components/PlatformSelector";
-import { SavedContext } from "../context/SavedContext";
-import { WatchedContext } from "../context/WatchedContext";
+import { LibraryContext } from "../context/LibraryContext";
 import { HeroSkeleton, RowSkeleton } from "../components/Skeletons";
 import { ShareModal } from "../components/Modals";
 import CertificationBadge from "../components/CertificationBadge";
@@ -32,8 +31,9 @@ const Home = () => {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [shareData, setShareData] = useState({ title: "", id: "" });
-  const { toggleSave, isSaved } = useContext(SavedContext);
-  const { watched, clearWatched, removeFromWatched } = useContext(WatchedContext);
+  const { toggleLibrary, isInLibrary, libraryItems, removeFromLibrary } = useContext(LibraryContext);
+  // Filter libraryItems for 'watched' type if needed, or use the whole list for "Continue Watching"
+  const watched = libraryItems.filter(item => item.lastEpisode || item.lastSeason || item.type === 'movie');
   const sliderRef = useRef(null);
 
   useEffect(() => {
@@ -178,10 +178,10 @@ const Home = () => {
                         />
 
                         <ActionButton
-                          onClick={() => toggleSave({ ...movie, media_type: "movie" })}
-                          icon={isSaved(movie.id) ? FiCheck : FiPlus}
-                          label={isSaved(movie.id) ? "Saved" : "Save"}
-                          active={isSaved(movie.id)}
+                          onClick={() => toggleLibrary({ ...movie, type: "movie" })}
+                          icon={isInLibrary(movie.id) ? FiCheck : FiPlus}
+                          label={isInLibrary(movie.id) ? "Saved" : ""}
+                          active={isInLibrary(movie.id)}
                         />
 
                         <ActionButton
@@ -190,7 +190,7 @@ const Home = () => {
                             setIsShareOpen(true);
                           }}
                           icon={FiShare2}
-                          label="Share"
+                          label=""
                         />
                       </motion.div>
 
@@ -309,6 +309,7 @@ const Home = () => {
               <div className="flex flex-col items-center text-center">
                 <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center mb-4">
                   <FiAlertTriangle className="text-yellow-500 text-3xl" />
+                  <a href="https://github.com/abhishekkalme" target="_blank" rel="noopener noreferrer" className="text-red-500 hover:text-red-400 font-bold transition-colors">Abhishek</a>
                 </div>
 
                 <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
@@ -368,8 +369,8 @@ const Home = () => {
             title="Continue Watching"
             items={watched.slice(0, 15)}
             loading={loading}
-            onRemoveItem={removeFromWatched}
-            onClearAll={clearWatched}
+            onRemoveItem={removeFromLibrary}
+            onClearAll={() => { }} // Library doesn't have clearAll yet, or we can add it later
           />
         )}
         <Row title="Trending Now" items={trendingMovies} loading={loading} />

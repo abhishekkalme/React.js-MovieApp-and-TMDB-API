@@ -133,7 +133,7 @@ const Navbar = () => {
               <FiLogOut size={14} /> Logout
             </button>
           ) : (
-            <button onClick={() => login("Explorer")} className="text-white transition-all bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 px-5 py-1.5 rounded-full font-medium shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:shadow-[0_0_25px_rgba(220,38,38,0.6)] transform hover:-translate-y-0.5">
+            <button onClick={() => login()} className="text-white transition-all bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 px-5 py-1.5 rounded-full font-medium shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:shadow-[0_0_25px_rgba(220,38,38,0.6)] transform hover:-translate-y-0.5">
               Login
             </button>
           )}
@@ -279,7 +279,7 @@ const Navbar = () => {
                   </button>
                 ) : (
                   <button
-                    onClick={() => { login("Explorer"); setMenuOpen(false); }}
+                    onClick={() => { login(); setMenuOpen(false); }}
                     className="flex justify-center items-center gap-2 text-lg font-semibold text-white bg-gradient-to-r from-red-600 to-red-500 w-full py-3.5 rounded-2xl shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transform hover:-translate-y-0.5 transition-all"
                   >
                     <FiLogIn size={20} />

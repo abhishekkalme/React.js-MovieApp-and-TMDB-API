@@ -9,14 +9,16 @@ const ActionButton = ({
     active = false,
     title = ''
 }) => {
-    const baseStyles = "h-12 flex items-center justify-center gap-2 px-6 rounded-full font-bold transition-all transition-colors duration-300 transform active:scale-95 shadow-lg border";
+    const baseStyles = "h-12 flex items-center justify-center gap-2 px-4 rounded-full font-bold transition-all transition-colors duration-300 transform active:scale-95 shadow-lg border";
 
     const variants = {
         primary: "bg-white text-black border-transparent hover:bg-gray-200",
         secondary: active
             ? "bg-green-500/20 border-green-500 text-green-500"
             : "bg-zinc-900/60 backdrop-blur-md border-white/10 text-white hover:bg-white/10 hover:border-white/20",
-        iconOnly: "w-12 px-0 bg-zinc-900/60 backdrop-blur-md border-white/10 text-white hover:bg-white/10 hover:border-white/20"
+        iconOnly: active
+            ? "w-12 px-0 bg-green-500/20 border-green-500 text-green-500"
+            : "w-12 px-0 bg-zinc-900/60 backdrop-blur-md border-white/10 text-white hover:bg-white/10 hover:border-white/20"
     };
 
     return (

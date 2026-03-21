@@ -2,7 +2,7 @@ import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import FloatingActions from "./components/FloatingActions";
-import { LoginPromptModal } from "./components/Modals";
+import LoginPromptModal from "./components/LoginPromptModal";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { MESSAGES, APP_CONFIG } from "./constants";
 import { FiX, FiGithub } from "react-icons/fi";
@@ -21,6 +21,10 @@ const Watch = lazy(() => import("./pages/Watch"));
 const Platforms = lazy(() => import("./pages/Platforms"));
 const PlatformPage = lazy(() => import("./pages/PlatformPage"));
 const Community = lazy(() => import("./pages/Community"));
+const Terms = lazy(() => import("./pages/Terms"));
+const CollectionDetails = lazy(() => import("./pages/CollectionDetails"));
+const PersonDetails = lazy(() => import("./pages/PersonDetails"));
+const DiscoveryPage = lazy(() => import("./pages/DiscoveryPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 
@@ -106,6 +110,10 @@ const App = () => {
               <Route path="/watch/:type/:id/:season/:episode" element={<Watch />} />
               <Route path="/community" element={<Community />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/collection/:id" element={<CollectionDetails />} />
+              <Route path="/person/:id" element={<PersonDetails />} />
+              <Route path="/discovery/:type/:id/:name" element={<DiscoveryPage />} />
+              <Route path="/terms" element={<Terms />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
@@ -161,7 +169,7 @@ const App = () => {
                     <a
                       href="https://github.com/abhishekkalme"
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="flex-1 min-w-[120px] text-xs font-medium text-gray-300 bg-white/5 hover:bg-white/15 hover:text-white border border-white/10 rounded-xl px-4 py-2.5 transition-all duration-300 flex items-center justify-center gap-1.5"
                     >
                       <FiGithub size={14} className="mb-0.5" />

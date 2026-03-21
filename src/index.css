@@ -76,6 +76,14 @@ body {
     animation: fadeInUp 0.8s ease-out both;
   }
 
+  .premium-input {
+    @apply bg-zinc-800/50 border border-white/5 rounded-2xl px-4 py-3 text-white outline-none focus:border-red-600/50 transition-all text-sm;
+  }
+
+  .custom-checkbox {
+    @apply w-4 h-4 rounded border-white/10 bg-zinc-800 text-red-600 focus:ring-red-600 focus:ring-offset-zinc-900 transition-all cursor-pointer;
+  }
+
   @keyframes fadeInUp {
     from {
       opacity: 0;

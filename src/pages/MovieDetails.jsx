@@ -1,14 +1,14 @@
 import { useEffect, useState, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-   FiPlay, FiShare2, FiStar,
-   FiCalendar, FiClock, FiMaximize2, FiInfo, FiPlus, FiCheck
-} from "react-icons/fi";
 import { FaImdb } from "react-icons/fa";
-import { fetchMovieDetails, fetchMovieCertifications } from "../api/tmdb";
-import { SavedContext } from "../context/SavedContext";
-import { WatchedContext } from "../context/WatchedContext";
+import { fetchMovieDetails, fetchMovieCertifications, fetchReleaseDates, fetchExternalIds, fetchKeywords } from "../api/tmdb";
+import {
+   FiPlay, FiShare2, FiStar, FiCalendar, FiClock,
+   FiMaximize2, FiInfo, FiPlus, FiCheck,
+   FiInstagram, FiTwitter, FiFacebook, FiAnchor
+} from "react-icons/fi";
+import { LibraryContext } from "../context/LibraryContext";
 import HorizontalScroll from "../components/HorizontalScroll";
 import { DetailsSkeleton } from "../components/Skeletons";
 import { ShareModal, TrailerModal } from "../components/Modals";
@@ -22,18 +22,26 @@ const MovieDetails = () => {
    const [loading, setLoading] = useState(true);
    const [isShareOpen, setIsShareOpen] = useState(false);
    const [isTrailerOpen, setIsTrailerOpen] = useState(false);
-   const { toggleSave, isSaved } = useContext(SavedContext);
-   const { toggleWatched, isWatched } = useContext(WatchedContext);
+   const [releaseInfo, setReleaseInfo] = useState(null);
+   const [externalIds, setExternalIds] = useState(null);
+   const [keywords, setKeywords] = useState([]);
+   const { toggleLibrary, isInLibrary } = useContext(LibraryContext);
 
    useEffect(() => {
       const fetchData = async () => {
          setLoading(true);
          try {
-            const [data] = await Promise.all([
+            const [data, releases, externals, kwData] = await Promise.all([
                fetchMovieDetails(id),
-               fetchMovieCertifications(id)
+               fetchMovieCertifications(id),
+               fetchReleaseDates(id),
+               fetchExternalIds(id),
+               fetchKeywords(id)
             ]);
             setMovie(data);
+            setReleaseInfo(releases);
+            setExternalIds(externals);
+            setKeywords(kwData.keywords || []);
          } catch (error) {
             console.error("Error fetching movie details:", error);
          } finally {
@@ -104,7 +112,7 @@ const MovieDetails = () => {
                      {movie.overview}
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
                      <ActionButton
                         onClick={() => navigate(`/watch/movie/${movie.id}`)}
                         icon={FiPlay}
@@ -116,30 +124,49 @@ const MovieDetails = () => {
                         <ActionButton
                            onClick={() => setIsTrailerOpen(true)}
                            icon={FiPlay}
-                           label="Watch Trailer"
+                           title="Watch Trailer"
                         />
                      )}
 
                      <ActionButton
-                        onClick={() => toggleSave({ ...movie, media_type: "movie" })}
-                        icon={isSaved(movie.id) ? FiCheck : FiPlus}
-                        label={isSaved(movie.id) ? "Saved" : "Save"}
-                        active={isSaved(movie.id)}
+                        onClick={() => toggleLibrary({ ...movie, type: "movie" })}
+                        icon={isInLibrary(movie.id) ? FiCheck : FiPlus}
+                        title={isInLibrary(movie.id) ? "Saved to Library" : "Save to Library"}
+                        active={isInLibrary(movie.id)}
                      />
 
-                     <ActionButton
-                        onClick={() => toggleWatched({ ...movie, media_type: "movie" })}
-                        icon={isWatched(movie.id) ? FiCheck : FiPlus}
-                        label="Watched"
-                        active={isWatched(movie.id)}
-                        title={isWatched(movie.id) ? "Mark as Unwatched" : "Mark as Watched"}
-                     />
+
 
                      <ActionButton
                         onClick={() => setIsShareOpen(true)}
                         icon={FiShare2}
                         title="Share"
                      />
+
+                     {externalIds && (
+                        <div className="flex items-center gap-3 ml-4 bg-white/5 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10">
+                           {externalIds.instagram_id && (
+                              <a href={`https://instagram.com/${externalIds.instagram_id}`} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition hover:scale-110">
+                                 <FiInstagram size={18} />
+                              </a>
+                           )}
+                           {externalIds.twitter_id && (
+                              <a href={`https://twitter.com/${externalIds.twitter_id}`} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition hover:scale-110">
+                                 <FiTwitter size={18} />
+                              </a>
+                           )}
+                           {externalIds.facebook_id && (
+                              <a href={`https://facebook.com/${externalIds.facebook_id}`} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition hover:scale-110">
+                                 <FiFacebook size={18} />
+                              </a>
+                           )}
+                           {movie.homepage && (
+                              <a href={movie.homepage} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition hover:scale-110 border-l border-white/10 pl-3">
+                                 <FiAnchor size={18} />
+                              </a>
+                           )}
+                        </div>
+                     )}
                   </div>
 
                   <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2 text-sm text-gray-400">
@@ -183,7 +210,7 @@ const MovieDetails = () => {
                   <h3 className="text-lg font-black uppercase tracking-widest text-gray-500 mb-8">Top Cast</h3>
                   <HorizontalScroll>
                      {movie.credits.cast.slice(0, 15).map((actor) => (
-                        <div key={actor.id} className="flex-shrink-0 w-32 group cursor-pointer text-center">
+                        <Link to={`/person/${actor.id}`} key={actor.id} className="flex-shrink-0 w-32 group cursor-pointer text-center">
                            <div className="relative aspect-square rounded-full overflow-hidden mb-4 border-2 border-white/10 group-hover:border-red-500 transition-all duration-500 shadow-xl mx-auto">
                               <img
                                  src={actor.profile_path ? `https://image.tmdb.org/t/p/w200${actor.profile_path}` : "https://via.placeholder.com/200x200?text=No+Image"}
@@ -193,7 +220,7 @@ const MovieDetails = () => {
                            </div>
                            <p className="text-sm font-bold text-white truncate group-hover:text-red-500 transition-colors px-2">{actor.name}</p>
                            <p className="text-[10px] text-gray-500 truncate px-2">{actor.character}</p>
-                        </div>
+                        </Link>
                      ))}
                   </HorizontalScroll>
                </section>
@@ -276,6 +303,86 @@ const MovieDetails = () => {
                   </div>
                </section>
             )}
+
+            {/* Release Information */}
+            {releaseInfo?.results?.length > 0 && (
+               <section>
+                  <h3 className="text-lg font-black uppercase tracking-widest text-gray-500 mb-8 flex items-center gap-2">
+                     <FiCalendar /> Release Schedule
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                     {releaseInfo.results.filter(r => ["IN", "US", "GB", "KR", "JP"].includes(r.iso_3166_1)).map((region) => (
+                        <div key={region.iso_3166_1} className="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-sm">
+                           <div className="flex items-center justify-between mb-2">
+                              <span className="font-bold text-red-500">{region.iso_3166_1}</span>
+                              <span className="text-xs text-gray-500 uppercase font-black tracking-widest">
+                                 {region.release_dates[0]?.certification || "N/A"}
+                              </span>
+                           </div>
+                           <div className="space-y-1">
+                              {region.release_dates.slice(0, 2).map((rd, i) => (
+                                 <div key={i} className="flex justify-between text-sm">
+                                    <span className="text-gray-400 capitalize">
+                                       {rd.type === 1 ? "Premiere" : rd.type === 2 ? "Theatrical (Ltd)" : rd.type === 3 ? "Theatrical" : rd.type === 4 ? "Digital" : rd.type === 5 ? "Physical" : "TV"}
+                                    </span>
+                                    <span className="text-white">
+                                       {new Date(rd.release_date).toLocaleDateString()}
+                                    </span>
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+                     ))}
+                  </div>
+               </section>
+            )}
+
+            {/* Keywords & Studios */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pb-20 border-t border-white/5 pt-16">
+               {keywords.length > 0 && (
+                  <section>
+                     <h3 className="text-lg font-black uppercase tracking-widest text-gray-500 mb-6">Keywords</h3>
+                     <div className="flex flex-wrap gap-2">
+                        {keywords.slice(0, 15).map(kw => (
+                           <Link
+                              to={`/discovery/keyword/${kw.id}/${kw.name.replace(/\s+/g, '-')}`}
+                              key={kw.id}
+                              className="text-[10px] font-bold uppercase tracking-wider bg-white/5 hover:bg-white/15 border border-white/10 hover:border-red-500/50 px-3 py-1.5 rounded-full transition-all text-gray-400 hover:text-white"
+                           >
+                              #{kw.name}
+                           </Link>
+                        ))}
+                     </div>
+                  </section>
+               )}
+
+               {movie.production_companies?.length > 0 && (
+                  <section>
+                     <h3 className="text-lg font-black uppercase tracking-widest text-gray-500 mb-6">Production</h3>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {movie.production_companies.filter(c => c.logo_path).slice(0, 4).map(company => (
+                           <Link
+                              to={`/discovery/company/${company.id}/${company.name.replace(/\s+/g, '-')}`}
+                              key={company.id}
+                              className="flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-3 rounded-2xl transition group"
+                           >
+                              <div className="w-10 h-10 bg-white/10 rounded-lg p-1.5 flex items-center justify-center shrink-0 group-hover:bg-white transition-colors overflow-hidden">
+                                 <img
+                                    src={`https://image.tmdb.org/t/p/w200${company.logo_path}`}
+                                    alt={company.name}
+                                    className="max-w-full max-h-full object-contain"
+                                 />
+                              </div>
+                              <div className="truncate">
+                                 <p className="text-sm font-bold text-white truncate">{company.name}</p>
+                                 <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black italic">Studio</p>
+                              </div>
+                           </Link>
+                        ))}
+                     </div>
+                  </section>
+               )}
+            </div>
          </div>
 
          <ShareModal

@@ -8,6 +8,7 @@ const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500/";
 const MovieCard = ({ movie, type = "movie", onRemove }) => {
   const getWatchLink = () => {
     const mediaType = movie.media_type || type;
+    if (mediaType === "collection") return `/collection/${movie.id}`;
     // For TV shows with progress
     if (movie.lastSeason && movie.lastEpisode) {
       return `/watch/${mediaType}/${movie.id}/${movie.lastSeason}/${movie.lastEpisode}`;
@@ -61,7 +62,9 @@ const MovieCard = ({ movie, type = "movie", onRemove }) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
             <h3 className="text-white font-bold text-sm leading-tight mb-1">{movie.title || movie.name}</h3>
             <p className="text-gray-300 text-xs text-shadow-sm">
-              {new Date(movie.release_date || movie.first_air_date).getFullYear() || "Unknown"}
+              {type === "collection"
+                ? "Collection"
+                : (new Date(movie.release_date || movie.first_air_date).getFullYear() || "Unknown")}
             </p>
           </div>
         </div>

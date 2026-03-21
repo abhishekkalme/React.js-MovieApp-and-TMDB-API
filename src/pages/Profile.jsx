@@ -1,35 +1,37 @@
 import React, { useState, useContext } from "react";
 import { motion } from "framer-motion";
 import { AuthContext } from "../context/AuthContext";
-import { SavedContext } from "../context/SavedContext";
-import { WatchedContext } from "../context/WatchedContext";
+import { LibraryContext } from "../context/LibraryContext";
 import MovieCard from "../components/MovieCard";
 import { PRESET_AVATARS, MESSAGES } from "../constants";
 import { Link } from "react-router-dom";
-import { FiEdit3, FiGlobe, FiGrid, FiSettings, FiCheck, FiClock } from "react-icons/fi";
+import { FiEdit3, FiGlobe, FiGrid, FiSettings, FiCheck, FiLogOut } from "react-icons/fi";
 
 const Profile = () => {
-  const { user, updateProfile } = useContext(AuthContext);
-  const { savedItems } = useContext(SavedContext);
-  const { watched, clearWatched, removeFromWatched } = useContext(WatchedContext);
+  const { user, updateProfile, logout } = useContext(AuthContext);
+  const { libraryItems, removeFromLibrary } = useContext(LibraryContext);
 
   const [activeTab, setActiveTab] = useState("mylist");
   const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState(user?.username || "Explorer");
-  const [editAvatar, setEditAvatar] = useState(user?.avatar || "");
 
-  const handleSaveProfile = () => {
-    updateProfile({ username: editName, avatar: editAvatar });
-    setIsEditing(false);
+  // Identity logic
+  const isGuest = !user;
+  const username = isGuest ? "Guest Explorer" : (user?.user_metadata?.username || user?.email?.split('@')[0] || "Explorer");
+  const avatar = isGuest ? "" : (user?.user_metadata?.avatar || "");
+
+  const [editName, setEditName] = useState(username);
+  const [editAvatar, setEditAvatar] = useState(avatar);
+
+  const handleSaveProfile = async () => {
+    try {
+      await updateProfile({ username: editName, avatar: editAvatar });
+      setIsEditing(false);
+    } catch (err) {
+      alert("Failed to update profile: " + err.message);
+    }
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-xl">Please login to view your profile.</p>
-      </div>
-    );
-  }
+  const { login } = useContext(AuthContext); // In case we need it for guest conversion
 
   return (
     <div className="min-h-screen bg-black text-white pt-24 px-6 md:px-12 flex flex-col items-center">
@@ -41,16 +43,18 @@ const Profile = () => {
 
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12 bg-zinc-900/40 p-8 rounded-2xl border border-white/5">
           <div className="relative group">
-            {user.avatar ? (
-              <img src={user.avatar} alt="Avatar" className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-2xl border-4 border-zinc-800" />
+            {avatar ? (
+              <img src={avatar} alt="Avatar" className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-2xl border-4 border-zinc-800" />
             ) : (
               <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-tr from-red-600 to-red-900 flex items-center justify-center text-5xl font-bold shadow-2xl border-4 border-zinc-900">
-                {user.username ? user.username.charAt(0).toUpperCase() : "E"}
+                {username.charAt(0).toUpperCase()}
               </div>
             )}
-            <button onClick={() => setIsEditing(!isEditing)} className="absolute bottom-0 right-0 bg-red-600 w-10 h-10 rounded-full flex items-center justify-center border-4 border-black text-xs font-bold hover:bg-white hover:text-red-600 transition shadow-lg">
-              <FiEdit3 size={16} />
-            </button>
+            {!isGuest && (
+              <button onClick={() => setIsEditing(!isEditing)} className="absolute bottom-0 right-0 bg-red-600 w-10 h-10 rounded-full flex items-center justify-center border-4 border-black text-xs font-bold hover:bg-white hover:text-red-600 transition shadow-lg">
+                <FiEdit3 size={16} />
+              </button>
+            )}
           </div>
 
           <div className="flex-1 text-center md:text-left">
@@ -59,14 +63,14 @@ const Profile = () => {
                 <div className="space-y-2">
                   <p className="text-xs uppercase font-black tracking-widest text-gray-500 mb-2">Cool Avatars</p>
                   <div className="flex flex-wrap gap-2">
-                    {PRESET_AVATARS.map(avatar => (
+                    {PRESET_AVATARS.map(avatarSet => (
                       <button
-                        key={avatar.id}
-                        onClick={() => setEditAvatar(avatar.url)}
-                        className={`relative w-12 h-12 rounded-xl overflow-hidden border-2 transition-all ${editAvatar === avatar.url ? "border-red-600 scale-110 shadow-lg shadow-red-600/20" : "border-white/5 hover:border-white/20"}`}
+                        key={avatarSet.id}
+                        onClick={() => setEditAvatar(avatarSet.url)}
+                        className={`relative w-12 h-12 rounded-xl overflow-hidden border-2 transition-all ${editAvatar === avatarSet.url ? "border-red-600 scale-110 shadow-lg shadow-red-600/20" : "border-white/5 hover:border-white/20"}`}
                       >
-                        <img src={avatar.url} alt={avatar.name} className="w-full h-full object-cover" />
-                        {editAvatar === avatar.url && (
+                        <img src={avatarSet.url} alt={avatarSet.name} className="w-full h-full object-cover" />
+                        {editAvatar === avatarSet.url && (
                           <div className="absolute inset-0 bg-red-600/20 flex items-center justify-center">
                             <FiCheck className="text-white" size={20} />
                           </div>
@@ -106,8 +110,25 @@ const Profile = () => {
               </div>
             ) : (
               <>
-                <h1 className="text-3xl md:text-4xl font-bold">{user.username || "Explorer"}</h1>
-                <p className="text-gray-400 mt-2">Premium Member • Joined {new Date(user.loggedInAt || Date.now()).getFullYear()}</p>
+                <h1 className="text-3xl md:text-4xl font-bold">{username}</h1>
+                <p className="text-gray-400 mt-2">
+                  {isGuest ? "Temporary Session" : `Member Since ${new Date(user.created_at).getFullYear()}`}
+                </p>
+                {isGuest ? (
+                  <button
+                    onClick={() => login()}
+                    className="mt-4 flex items-center gap-2 text-xs font-bold text-red-500 hover:text-white transition-colors"
+                  >
+                    Login to sync across devices
+                  </button>
+                ) : (
+                  <button
+                    onClick={logout}
+                    className="mt-4 flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-red-500 transition-colors"
+                  >
+                    <FiLogOut /> Sign Out
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -119,17 +140,12 @@ const Profile = () => {
             onClick={() => setActiveTab("mylist")}
             className={`font-black uppercase tracking-widest text-xs pb-4 transition flex items-center gap-2 ${activeTab === "mylist" ? "text-red-500 border-b-2 border-red-500" : "text-gray-500 hover:text-white"}`}
           >
-            <FiGrid /> My WatchList ({savedItems.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("history")}
-            className={`font-black uppercase tracking-widest text-xs pb-4 transition flex items-center gap-2 ${activeTab === "history" ? "text-red-500 border-b-2 border-red-500" : "text-gray-500 hover:text-white"}`}
-          >
-            <FiClock /> Watch History ({watched.length})
+            <FiGrid /> My Library ({libraryItems.length})
           </button>
           <button
             onClick={() => setActiveTab("settings")}
-            className={`font-black uppercase tracking-widest text-xs pb-4 transition flex items-center gap-2 ${activeTab === "settings" ? "text-red-500 border-b-2 border-red-500" : "text-gray-500 hover:text-white"}`}
+            disabled={isGuest}
+            className={`font-black uppercase tracking-widest text-xs pb-4 transition flex items-center gap-2 ${isGuest ? 'opacity-20 grayscale cursor-not-allowed' : (activeTab === "settings" ? "text-red-500 border-b-2 border-red-500" : "text-gray-500 hover:text-white")}`}
           >
             <FiSettings /> Settings
           </button>
@@ -138,10 +154,15 @@ const Profile = () => {
 
         {activeTab === "mylist" && (
           <div>
-            {savedItems.length > 0 ? (
+            {libraryItems.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                {savedItems.map((item) => (
-                  <MovieCard key={item.id} movie={item} type={item.media_type || (item.title ? "movie" : "tv")} />
+                {libraryItems.map((item) => (
+                  <MovieCard
+                    key={item.id}
+                    movie={item}
+                    type={item.type || (item.title ? "movie" : "tv")}
+                    onRemove={() => removeFromLibrary(item.id)}
+                  />
                 ))}
               </div>
             ) : (
@@ -152,48 +173,7 @@ const Profile = () => {
                 <h3 className="text-xl font-bold mb-2">Feeling adventurous?</h3>
                 <p className="text-gray-500 text-sm max-w-xs mb-8">{MESSAGES.WATCHLIST_EMPTY}</p>
                 <Link
-                  to="/search"
-                  className="flex items-center gap-2 bg-red-600/10 text-red-500 px-8 py-3.5 rounded-2xl font-black border border-red-600/30 hover:bg-red-600 hover:text-white transition-all hover:scale-105"
-                >
-                  Explore New Titles
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === "history" && (
-          <div>
-            {watched.length > 0 ? (
-              <>
-                <div className="flex justify-end mb-4">
-                  <button
-                    onClick={clearWatched}
-                    className="text-sm font-bold text-gray-400 hover:text-red-500 transition border border-white/10 hover:border-red-500/50 px-4 py-2 rounded-lg bg-zinc-900/50"
-                  >
-                    Clear History
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                  {watched.map((item) => (
-                    <MovieCard
-                      key={item.id}
-                      movie={item}
-                      type={item.media_type || (item.title ? "movie" : "tv")}
-                      onRemove={removeFromWatched}
-                    />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-24 bg-zinc-900/20 rounded-3xl border border-dashed border-white/10 flex flex-col items-center">
-                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-gray-600 mb-6">
-                  <FiClock size={32} />
-                </div>
-                <h3 className="text-xl font-bold mb-2">No watch history</h3>
-                <p className="text-gray-500 text-sm max-w-xs mb-8">Start exploring and watching movies to build your history.</p>
-                <Link
-                  to="/search"
+                  to="/movies"
                   className="flex items-center gap-2 bg-red-600/10 text-red-500 px-8 py-3.5 rounded-2xl font-black border border-red-600/30 hover:bg-red-600 hover:text-white transition-all hover:scale-105"
                 >
                   Explore New Titles
@@ -210,19 +190,19 @@ const Profile = () => {
             <div className="space-y-6">
               <div>
                 <p className="text-gray-400 text-sm mb-1">Email</p>
-                <p className="text-white bg-zinc-800 px-4 py-3 rounded-lg border border-white/5">user@cineverse.app</p>
+                <p className="text-white bg-zinc-800 px-4 py-3 rounded-lg border border-white/5">{user.email}</p>
               </div>
               <div>
-                <p className="text-gray-400 text-sm mb-1">Plan</p>
-                <p className="text-white bg-zinc-800 px-4 py-3 rounded-lg border border-white/5 flex justify-between items-center">
-                  Cineverse Premium
-                  <span className="text-xs bg-red-600 px-2 py-1 rounded text-white font-bold tracking-wide">ACTIVE</span>
+                <p className="text-gray-400 text-sm mb-1">Auth Type</p>
+                <p className="text-white bg-zinc-800 px-4 py-3 rounded-lg border border-white/5 flex justify-between items-center capitalize">
+                  {user.app_metadata?.provider || 'Email'}
+                  <span className="text-xs bg-red-600 px-2 py-1 rounded text-white font-bold tracking-wide">VERIFIED</span>
                 </p>
               </div>
               <div className="pt-4 border-t border-white/5">
-                <button className="text-gray-400 hover:text-white transition text-sm">Reset Password</button>
-                <br />
-                <button className="text-red-500 hover:text-red-400 transition text-sm mt-4">Delete Account</button>
+                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-4 italic">
+                  Note: Changes to email must be done via Supabase dashboard.
+                </p>
               </div>
             </div>
           </div>

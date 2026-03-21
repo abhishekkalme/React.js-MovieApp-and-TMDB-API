@@ -5,7 +5,8 @@ import { fetchMovieDetails, fetchTvDetails, fetchSeasonEpisodes } from "../api/t
 import { FiStar, FiChevronDown } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useContext } from "react";
-import { WatchedContext } from "../context/WatchedContext";
+import { LibraryContext } from "../context/LibraryContext";
+import { AuthContext } from "../context/AuthContext";
 
 
 const STREAMING_SERVERS = [
@@ -110,7 +111,8 @@ const Watch = () => {
     // Custom UI States
     const [toastMessage, setToastMessage] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState(null);
-    const { addToWatched } = useContext(WatchedContext);
+    const { addToLibrary } = useContext(LibraryContext);
+    const { user, checkLimit, recordGuestView, isLimitReached, setIsLimitReached } = useContext(AuthContext);
 
     const timeoutRef = useRef(null);
 
@@ -138,19 +140,34 @@ const Watch = () => {
     }, [id, type]);
 
     useEffect(() => {
+        if (!user && checkLimit(type === "movie" ? "movie" : "tv")) {
+            setIsLimitReached(true);
+        }
         getDetails();
-    }, [getDetails]);
+    }, [getDetails, user, type, checkLimit, setIsLimitReached]);
 
     // Update watch history on mount and when episode/season changes
     useEffect(() => {
         if (details) {
-            addToWatched(
-                { ...details, media_type: type === "movie" ? "movie" : "tv" },
-                isEpisode ? season : null,
-                isEpisode ? episode : null
+            // Record watch history for everyone
+            addToLibrary(
+                {
+                    ...details,
+                    type: type === "movie" ? "movie" : "tv",
+                    lastSeason: isEpisode ? season : null,
+                    lastEpisode: isEpisode ? episode : null
+                }
             );
+
+            // Record guest view for limit enforcement
+            if (!user) {
+                const viewId = (type === "tv" || type === "anime")
+                    ? `${details.id}_${season}_${episode}`
+                    : details.id;
+                recordGuestView(type === "movie" ? "movie" : "tv", viewId);
+            }
         }
-    }, [details, season, episode, type, isEpisode, addToWatched]);
+    }, [details, season, episode, type, isEpisode, addToLibrary, user, recordGuestView]);
 
     useEffect(() => {
         if ((type === "tv" || type === "anime") && id) {
@@ -424,6 +441,25 @@ const Watch = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10"
                         >
+                            {isLimitReached && !user ? (
+                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-zinc-900/90 backdrop-blur-xl p-8 text-center">
+                                    <div className="w-20 h-20 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 mb-6 border border-red-500/30">
+                                        <FiMonitor size={40} />
+                                    </div>
+                                    <h3 className="text-2xl font-black mb-2">Free Limit Reached</h3>
+                                    <p className="text-gray-400 mb-8 max-w-sm">
+                                        You've enjoyed your 2 free {type === "movie" ? "movies" : "episodes"}! Create a free account to continue watching unlimited content.
+                                    </p>
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={() => setIsLimitReached(false)}
+                                            className="flex items-center gap-2 rounded-full bg-white text-black px-8 py-3.5 font-black transition hover:scale-105 active:scale-95 shadow-xl shadow-white/10"
+                                        >
+                                            Login / Sign Up
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : null}
                             {playerSrc ? (
                                 isExternalOnly ? (
                                     <div className="flex h-full flex-col items-center justify-center gap-6 p-6 text-center">
@@ -437,7 +473,7 @@ const Watch = () => {
                                             </p>
                                         </div>
                                         <button
-                                            onClick={() => window.open(playerSrc, "_blank")}
+                                            onClick={() => window.open(playerSrc, "_blank", "noopener,noreferrer")}
                                             className="group flex items-center gap-3 rounded-full bg-red-600 px-8 py-3.5 font-black text-white hover:bg-red-700 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-red-600/40"
                                         >
                                             Open in New Tab
@@ -582,7 +618,7 @@ const Watch = () => {
                             <div className="flex flex-wrap gap-4 pt-2">
                                 {details?.videos?.results?.find(v => v.type === "Trailer") && (
                                     <button
-                                        onClick={() => window.open(`https://www.youtube.com/watch?v=${details.videos.results.find(v => v.type === "Trailer").key}`, "_blank")}
+                                        onClick={() => window.open(`https://www.youtube.com/watch?v=${details.videos.results.find(v => v.type === "Trailer").key}`, "_blank", "noopener,noreferrer")}
                                         className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black text-sm font-black hover:bg-gray-200 transition-all hover:scale-105 active:scale-95"
                                     >
                                         Watch Trailer
@@ -726,7 +762,7 @@ const Watch = () => {
                                         Copy Link
                                     </button>
                                     <button
-                                        onClick={() => window.open(`https://twitter.com/intent/tweet?text=Watching ${title} on CineVerse!&url=${encodeURIComponent(window.location.href)}`, "_blank")}
+                                        onClick={() => window.open(`https://twitter.com/intent/tweet?text=Watching ${title} on CineVerse!&url=${encodeURIComponent(window.location.href)}`, "_blank", "noopener,noreferrer")}
                                         className="flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition text-xs font-bold"
                                     >
                                         Share on X

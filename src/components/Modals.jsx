@@ -100,7 +100,7 @@ export const ShareModal = ({ isOpen, onClose, title, url }) => {
                                 key={link.name}
                                 href={link.href}
                                 target={link.href ? "_blank" : undefined}
-                                rel={link.href ? "noreferrer" : undefined}
+                                rel={link.href ? "noopener noreferrer" : undefined}
                                 onClick={(e) => {
                                     if (link.action) {
                                         e.preventDefault();

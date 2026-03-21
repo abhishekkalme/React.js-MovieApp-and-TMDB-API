@@ -6,6 +6,10 @@ import { TMDB_CONFIG } from "../constants";
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
+if (!API_KEY || !ACCESS_TOKEN) {
+  console.warn("TMDB API Key or Access Token is missing in environment variables.");
+}
+
 const tmdb = axios.create({
   baseURL: TMDB_CONFIG.BASE_URL,
   headers: {
@@ -23,12 +27,29 @@ export const fetchMovies = async (query = "", page = 1, type = "all") => {
   return response.data;
 };
 
+export const searchCollections = async (query, page = 1) => {
+  const response = await tmdb.get(`/search/collection`, {
+    params: { query, page },
+  });
+  return response.data;
+};
+
+export const fetchCollectionDetails = async (collectionId) => {
+  const response = await tmdb.get(`/collection/${collectionId}`);
+  return response.data;
+};
+
 export const fetchMovieDetails = async (movieId) => {
   const response = await tmdb.get(`/movie/${movieId}`, {
     params: {
       append_to_response: "credits,videos,recommendations,release_dates,reviews,images,watch/providers",
     },
   });
+  return response.data;
+};
+
+export const fetchReleaseDates = async (movieId) => {
+  const response = await tmdb.get(`/movie/${movieId}/release_dates`);
   return response.data;
 };
 
@@ -135,6 +156,40 @@ export const fetchMovieWatchProviders = async (movieId) => {
     console.error("Failed to fetch watch providers:", error);
     return null;
   }
+};
+
+export const fetchExternalIds = async (id, type = "movie") => {
+  const response = await tmdb.get(`/${type}/${id}/external_ids`);
+  return response.data;
+};
+
+export const fetchPersonDetails = async (id) => {
+  const response = await tmdb.get(`/person/${id}?append_to_response=combined_credits,external_ids,images`);
+  return response.data;
+};
+
+export const fetchKeywords = async (movieId, type = "movie") => {
+  const response = await tmdb.get(`/${type}/${movieId}/keywords`);
+  return response.data;
+};
+
+export const fetchCompanyDetails = async (id) => {
+  const response = await tmdb.get(`/company/${id}`);
+  return response.data;
+};
+
+export const fetchContentByDiscovery = async (discoveryType, id, page = 1, mediaType = "movie") => {
+  const params = {
+    page,
+    sort_by: "popularity.desc",
+  };
+  
+  if (discoveryType === "keyword") params.with_keywords = id;
+  if (discoveryType === "company") params.with_companies = id;
+  if (discoveryType === "genre") params.with_genres = id;
+
+  const response = await tmdb.get(`/discover/${mediaType}`, { params });
+  return response.data;
 };
 
 export const getTVDetails = async (id) => {
@@ -270,6 +325,7 @@ export const fetchAdvancedFilters = async ({
     [dateLteKey]: yearTo ? `${yearTo}-12-31` : "",
     with_watch_providers: provider,
     watch_region: "IN",
+    page,
   };
 
   try {
