@@ -247,7 +247,7 @@ const SearchResults = () => {
                 {movies.length === 0 && !loading && (
                     <div className="text-center py-32 bg-[#0a0a0a] rounded-[3rem] border border-white/5">
                         <h2 className="text-3xl font-black mb-4">No results found</h2>
-                        <p className="text-gray-500 max-w-md mx-auto">Try adjusting your filters or search query to find what you're looking for.</p>
+                        <p className="text-gray-500 max-w-md mx-auto">Try adjusting your filters or search query to find what you&apos;re looking for.</p>
                     </div>
                 )}
 

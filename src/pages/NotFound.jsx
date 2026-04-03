@@ -30,7 +30,7 @@ const NotFound = () => {
                     Lost in Space?
                 </h1>
                 <p className="text-gray-400 text-lg md:text-xl mb-12 leading-relaxed">
-                    The movie or page you're searching for seems to have drifted into a black hole.
+                    The movie or page you&apos;re searching for seems to have drifted into a black hole.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">

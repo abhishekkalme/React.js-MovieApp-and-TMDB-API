@@ -1,10 +1,12 @@
 import React, { useEffect, useContext, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiLink, FiLock, FiUser } from "react-icons/fi";
+import { FiX, FiLink, FiLock, FiUser, FiCheckCircle } from "react-icons/fi";
 import { FaRedditAlien, FaTwitter, FaTelegramPlane, FaFacebookF, FaWhatsapp } from "react-icons/fa";
 import { AuthContext } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 
 export const ShareModal = ({ isOpen, onClose, title, url }) => {
+    const { showNotification } = useNotification();
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = "hidden";
@@ -54,7 +56,7 @@ export const ShareModal = ({ isOpen, onClose, title, url }) => {
             icon: <FiLink size={24} className="text-purple-400" />,
             action: () => {
                 navigator.clipboard.writeText(url);
-                alert("Link copied to clipboard!");
+                showNotification("Link copied to clipboard!", "success");
             },
             color: "hover:bg-purple-400/20 hover:border-purple-400"
         },

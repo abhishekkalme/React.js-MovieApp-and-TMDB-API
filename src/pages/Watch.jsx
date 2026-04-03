@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useContext } from "react";
 import { LibraryContext } from "../context/LibraryContext";
 import { AuthContext } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 
 
 const STREAMING_SERVERS = [
@@ -109,10 +110,10 @@ const Watch = () => {
     const [isEpisodesExpanded, setIsEpisodesExpanded] = useState(false);
 
     // Custom UI States
-    const [toastMessage, setToastMessage] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState(null);
     const { addToLibrary } = useContext(LibraryContext);
     const { user, checkLimit, recordGuestView, isLimitReached, setIsLimitReached } = useContext(AuthContext);
+    const { showNotification } = useNotification();
 
     const timeoutRef = useRef(null);
 
@@ -140,11 +141,8 @@ const Watch = () => {
     }, [id, type]);
 
     useEffect(() => {
-        if (!user && checkLimit(type === "movie" ? "movie" : "tv")) {
-            setIsLimitReached(true);
-        }
         getDetails();
-    }, [getDetails, user, type, checkLimit, setIsLimitReached]);
+    }, [getDetails]);
 
     // Update watch history on mount and when episode/season changes
     useEffect(() => {
@@ -196,10 +194,6 @@ const Watch = () => {
         }
     };
 
-    const showToast = (message) => {
-        setToastMessage(message);
-        setTimeout(() => setToastMessage(null), 3000);
-    };
 
     const handleNextEpisode = () => {
         const nextEp = episodes.find(ep => ep.episode_number === episode + 1);
@@ -227,12 +221,12 @@ const Watch = () => {
             return;
         }
 
-        showToast("You have reached the final episode of this series.");
+        showNotification("You have reached the final episode of this series.", "info");
     };
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(window.location.href);
-        showToast("Link copied to clipboard!");
+        showNotification("Link copied to clipboard!", "success");
     };
 
 
@@ -333,19 +327,6 @@ const Watch = () => {
 
     return (
         <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
-            <AnimatePresence>
-                {toastMessage && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-white text-black px-5 md:px-6 py-3 rounded-2xl md:rounded-full font-bold shadow-2xl flex items-center gap-3 border border-gray-200 w-[90vw] max-w-md md:w-max justify-center text-center text-[11px] sm:text-sm"
-                    >
-                        <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse flex-shrink-0"></div>
-                        <span>{toastMessage}</span>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             <AnimatePresence>
                 {confirmDialog && (
@@ -358,7 +339,7 @@ const Watch = () => {
                         >
                             <h3 className="text-lg sm:text-xl font-black mb-2 sm:mb-3">{confirmDialog.title}</h3>
                             <p className="text-gray-400 text-xs sm:text-sm mb-6 sm:mb-8 leading-relaxed">
-                                {confirmDialog.message}
+                                {confirmDialog.message.replace(/'/g, "&apos;")}
                             </p>
                             <div className="flex gap-3">
                                 <button
@@ -448,14 +429,20 @@ const Watch = () => {
                                     </div>
                                     <h3 className="text-2xl font-black mb-2">Free Limit Reached</h3>
                                     <p className="text-gray-400 mb-8 max-w-sm">
-                                        You've enjoyed your 2 free {type === "movie" ? "movies" : "episodes"}! Create a free account to continue watching unlimited content.
+                                        You&apos;ve enjoyed your 2 free {type === "movie" ? "movies" : "episodes"}! Create a free account to continue watching unlimited content.
                                     </p>
-                                    <div className="flex gap-4">
+                                    <div className="flex flex-wrap justify-center gap-4">
                                         <button
-                                            onClick={() => setIsLimitReached(false)}
+                                            onClick={() => login("Please log in to continue watching.")}
                                             className="flex items-center gap-2 rounded-full bg-white text-black px-8 py-3.5 font-black transition hover:scale-105 active:scale-95 shadow-xl shadow-white/10"
                                         >
                                             Login / Sign Up
+                                        </button>
+                                        <button
+                                            onClick={() => navigate("/")}
+                                            className="flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 text-white px-8 py-3.5 font-black transition hover:scale-105 active:scale-95 border border-white/10"
+                                        >
+                                            Back to Home
                                         </button>
                                     </div>
                                 </div>
@@ -625,7 +612,7 @@ const Watch = () => {
                                     </button>
                                 )}
                                 <button
-                                    onClick={() => showToast("Issue reported! Our team will look into it. Thank you for your feedback.")}
+                                    onClick={() => showNotification("Issue reported! Our team will look into it. Thank you for your feedback.", "success")}
                                     className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/10 border border-white/20 text-white text-sm font-black hover:bg-white/20 transition-all"
                                 >
                                     Report Issue
@@ -694,6 +681,10 @@ const Watch = () => {
                                                         <div className="relative w-24 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-zinc-800">
                                                             <img
                                                                 src={ep.still_path ? `https://image.tmdb.org/t/p/w200${ep.still_path}` : "https://via.placeholder.com/200x112?text=No+Img"}
+                                                                onError={(e) => {
+                                                                    e.target.onerror = null;
+                                                                    e.target.src = "https://via.placeholder.com/200x112?text=No+Img";
+                                                                }}
                                                                 alt={ep.name}
                                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                                             />
@@ -780,6 +771,10 @@ const Watch = () => {
                                                 <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 border border-white/10">
                                                     <img
                                                         src={actor.profile_path ? `https://image.tmdb.org/t/p/w200${actor.profile_path}` : "https://via.placeholder.com/100x100?text=?"}
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = "https://via.placeholder.com/100x100?text=?";
+                                                        }}
                                                         alt={actor.name}
                                                         className="w-full h-full object-cover"
                                                     />
@@ -808,6 +803,10 @@ const Watch = () => {
                                                 <div className="w-16 h-20 rounded-lg overflow-hidden bg-zinc-800 border border-white/10 flex-shrink-0">
                                                     <img
                                                         src={item.poster_path ? `https://image.tmdb.org/t/p/w200${item.poster_path}` : "https://via.placeholder.com/200x300?text=No+Img"}
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = "https://via.placeholder.com/200x300?text=No+Img";
+                                                        }}
                                                         alt={item.title || item.name}
                                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                     />

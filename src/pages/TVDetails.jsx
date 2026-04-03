@@ -8,6 +8,7 @@ import {
 import { FaImdb } from "react-icons/fa";
 import { getTVDetails, fetchSeasonEpisodes } from "../api/tmdb";
 import { LibraryContext } from "../context/LibraryContext";
+import { AuthContext } from "../context/AuthContext";
 import HorizontalScroll from "../components/HorizontalScroll";
 import { DetailsSkeleton } from "../components/Skeletons";
 import { ShareModal, TrailerModal } from "../components/Modals";
@@ -25,6 +26,7 @@ const TVDetails = () => {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const { toggleLibrary, isInLibrary } = useContext(LibraryContext);
+  const { checkLimit, login } = useContext(AuthContext);
 
   const isSaved = isInLibrary(Number(id));
 
@@ -132,7 +134,13 @@ const TVDetails = () => {
 
             <div className="flex flex-wrap items-center gap-3">
               <ActionButton
-                onClick={() => navigate(`/watch/tv/${tv.id}/1/1`)}
+                onClick={() => {
+                  if (checkLimit("tv")) {
+                    login("Please log in to continue watching.");
+                  } else {
+                    navigate(`/watch/tv/${tv.id}/1/1`);
+                  }
+                }}
                 icon={FiPlay}
                 label="Watch Now"
                 variant="primary"
@@ -209,6 +217,10 @@ const TVDetails = () => {
                   <div className="relative aspect-square rounded-full overflow-hidden mb-4 border-2 border-white/10 group-hover:border-red-500 transition-all duration-500 shadow-xl mx-auto">
                     <img
                       src={actor.profile_path ? `https://image.tmdb.org/t/p/w200${actor.profile_path}` : "https://via.placeholder.com/200x200?text=No+Image"}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://via.placeholder.com/200x200?text=No+Image";
+                      }}
                       alt={actor.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
@@ -232,7 +244,11 @@ const TVDetails = () => {
                 <div className="flex gap-5 p-5">
                   <div className="relative group">
                     <img
-                      src={season.poster_path ? `https://image.tmdb.org/t/p/w200${season.poster_path}` : "https://via.placeholder.com/200x300?text=No+Image"}
+                      src={season.poster_path ? `https://image.tmdb.org/t/p/w200${season.poster_path}` : "https://via.placeholder.com/200x300?text=No+Poster"}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://via.placeholder.com/200x300?text=No+Poster";
+                      }}
                       alt={season.name}
                       className="w-24 h-36 rounded-2xl object-cover shadow-2xl transition-transform duration-500 group-hover:scale-105"
                     />
@@ -279,11 +295,21 @@ const TVDetails = () => {
                             <div
                               key={ep.id}
                               className="group cursor-pointer flex gap-4 p-3 rounded-2xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all duration-300"
-                              onClick={() => navigate(`/watch/tv/${tv.id}/${season.season_number}/${ep.episode_number}`)}
+                              onClick={() => {
+                                if (checkLimit("tv")) {
+                                  login("Please log in to continue watching.");
+                                } else {
+                                  navigate(`/watch/tv/${tv.id}/${season.season_number}/${ep.episode_number}`);
+                                }
+                              }}
                             >
                               <div className="relative w-36 h-24 rounded-xl overflow-hidden flex-shrink-0 shadow-lg">
                                 <img
                                   src={ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : "https://via.placeholder.com/300x170?text=No+Image"}
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "https://via.placeholder.com/300x170?text=No+Image";
+                                  }}
                                   alt={ep.name}
                                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
@@ -369,7 +395,7 @@ const TVDetails = () => {
                     </div>
                   </div>
                   <p className="text-gray-300 text-sm leading-relaxed line-clamp-4 italic">
-                    "{review.content}"
+                    &quot;{review.content}&quot;
                   </p>
                 </div>
               ))}
@@ -390,7 +416,11 @@ const TVDetails = () => {
                 >
                   <div className="relative aspect-[2/3] rounded-2xl overflow-hidden mb-3 border border-white/10 group-hover:border-red-500/50 transition-all group-hover:scale-[1.02] shadow-xl">
                     <img
-                      src={show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : "https://via.placeholder.com/500x750?text=No+Image"}
+                      src={show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : "https://via.placeholder.com/500x750?text=No+Poster"}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://via.placeholder.com/500x750?text=No+Poster";
+                      }}
                       alt={show.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />

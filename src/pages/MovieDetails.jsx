@@ -10,6 +10,7 @@ import {
 } from "react-icons/fi";
 import { LibraryContext } from "../context/LibraryContext";
 import HorizontalScroll from "../components/HorizontalScroll";
+import { AuthContext } from "../context/AuthContext";
 import { DetailsSkeleton } from "../components/Skeletons";
 import { ShareModal, TrailerModal } from "../components/Modals";
 import CertificationBadge from "../components/CertificationBadge";
@@ -26,6 +27,7 @@ const MovieDetails = () => {
    const [externalIds, setExternalIds] = useState(null);
    const [keywords, setKeywords] = useState([]);
    const { toggleLibrary, isInLibrary } = useContext(LibraryContext);
+   const { checkLimit, login } = useContext(AuthContext);
 
    useEffect(() => {
       const fetchData = async () => {
@@ -114,7 +116,13 @@ const MovieDetails = () => {
 
                   <div className="flex flex-wrap items-center gap-2">
                      <ActionButton
-                        onClick={() => navigate(`/watch/movie/${movie.id}`)}
+                        onClick={() => {
+                           if (checkLimit("movie")) {
+                              login("Please log in to continue watching.");
+                           } else {
+                              navigate(`/watch/movie/${movie.id}`);
+                           }
+                        }}
                         icon={FiPlay}
                         label="Watch Movie"
                         variant="primary"
@@ -214,6 +222,10 @@ const MovieDetails = () => {
                            <div className="relative aspect-square rounded-full overflow-hidden mb-4 border-2 border-white/10 group-hover:border-red-500 transition-all duration-500 shadow-xl mx-auto">
                               <img
                                  src={actor.profile_path ? `https://image.tmdb.org/t/p/w200${actor.profile_path}` : "https://via.placeholder.com/200x200?text=No+Image"}
+                                 onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "https://via.placeholder.com/200x200?text=No+Image";
+                                 }}
                                  alt={actor.name}
                                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                               />
@@ -237,6 +249,10 @@ const MovieDetails = () => {
                         <div key={i} className="flex-shrink-0 w-80 aspect-video rounded-2xl overflow-hidden border border-white/10 hover:border-red-500/50 transition-all cursor-zoom-in group">
                            <img
                               src={`https://image.tmdb.org/t/p/original${img.file_path}`}
+                              onError={(e) => {
+                                 e.target.onerror = null;
+                                 e.target.src = "https://via.placeholder.com/800x450?text=No+Image";
+                              }}
                               alt="Movie Backdrop"
                               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                            />
@@ -271,7 +287,7 @@ const MovieDetails = () => {
                               </div>
                            </div>
                            <p className="text-gray-300 text-sm leading-relaxed line-clamp-4 italic">
-                              "{review.content}"
+                              &quot;{review.content}&quot;
                            </p>
                         </div>
                      ))}
@@ -288,7 +304,11 @@ const MovieDetails = () => {
                         <div key={item.id} className="group" onClick={() => navigate(`/movie/${item.id}`)}>
                            <div className="relative aspect-[2/3] rounded-2xl overflow-hidden mb-3 border border-white/10 group-hover:border-red-500/50 transition-all group-hover:scale-[1.02] shadow-xl cursor-pointer">
                               <img
-                                 src={item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "https://via.placeholder.com/500x750?text=No+Image"}
+                                 src={item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "https://via.placeholder.com/500x750?text=No+Poster"}
+                                 onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "https://via.placeholder.com/500x750?text=No+Poster";
+                                 }}
                                  alt={item.title}
                                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                               />

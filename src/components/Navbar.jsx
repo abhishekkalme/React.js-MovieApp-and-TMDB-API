@@ -6,14 +6,17 @@ import { FaCat } from "react-icons/fa";
 import { RiMovie2AiLine } from "react-icons/ri";
 
 import { AuthContext } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 import { APP_CONFIG } from "../constants";
+import SearchOverlay from "./SearchOverlay";
 
 const Navbar = () => {
   const { user, login, logout } = useContext(AuthContext);
+  const { history, clearHistory } = useNotification();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchText, setSearchText] = useState("");
+  const [isSearchOverlayOpen, setIsSearchOverlayOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,31 +30,56 @@ const Navbar = () => {
   useEffect(() => {
     if (menuOpen) {
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+      return () => {
+        document.body.style.overflow = "";
+      };
     }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
   }, [menuOpen]);
+
+  // Global keyboard shortcuts for search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+K, Cmd+K or /
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOverlayOpen(true);
+      }
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        setIsSearchOverlayOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Close notification dropdown on click outside
+  useEffect(() => {
+    if (!isNotificationOpen) return;
+
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.notification-container')) {
+        setIsNotificationOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isNotificationOpen]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchText.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchText.trim())}`);
-      setSearchOpen(false);
-      setMenuOpen(false);
-    }
   };
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
+      className={`fixed top-0 left-0 right-0 z-[70] transition-all duration-500 ${scrolled
         ? "bg-black/80 backdrop-blur-lg shadow-lg py-3"
         : "bg-gradient-to-b from-black/80 via-black/40 to-transparent py-5"
         }`}
     >
-      <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+      <div className="w-full justify-between flex items-center px-6 md:px-12">
         <Link to="/" className="flex items-center gap-2 group relative z-50 transition-transform duration-300 hover:scale-105 active:scale-95">
           <div className="">
             <div className=""></div>
@@ -63,14 +91,14 @@ const Navbar = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white transition-all drop-shadow-md">
+            <span className="text-2xl  sm:text-3xl font-extrabold tracking-tight text-white transition-all drop-shadow-md">
               Cine<span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-400 drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]">Verse</span>
             </span>
           </motion.div>
         </Link>
 
         {/* Desktop Links */}
-        <div className="hidden md:flex items-center space-x-6">
+        <div className="hidden md:flex items-center space-x-2 lg:space-x-6 ml-10">
           {[
             { name: "Home", path: "/", icon: <FiHome className="mr-1.5 inline" /> },
             { name: "Movies", path: "/movies", icon: <FiFilm className="mr-1.5 inline" /> },
@@ -95,38 +123,85 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="hidden md:flex items-center space-x-4">
-          <div className="relative">
+        <div className="hidden md:flex items-center space-x-4 ml-auto">
+          <button
+            onClick={() => setIsSearchOverlayOpen(true)}
+            className="group flex items-center gap-3 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/5 hover:border-white/20 transition-all duration-300"
+            title="Search (Ctrl + K)"
+          >
+            <FiSearch size={18} className="text-gray-400 group-hover:text-red-500 transition-colors" />
+            <span className="text-sm text-gray-500 group-hover:text-gray-300 transition-colors">Search...</span>
+            <div className="hidden lg:flex items-center gap-1 ml-2">
+              <span className="text-[10px] bg-zinc-800 text-gray-500 px-1.5 py-0.5 rounded border border-white/5">Ctrl</span>
+              <span className="text-[10px] bg-zinc-800 text-gray-500 px-1.5 py-0.5 rounded border border-white/5">K</span>
+            </div>
+          </button>
+
+          <div className="relative notification-container">
+            <button
+              onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+              className="text-gray-300 hover:text-white transition relative p-2"
+            >
+              <FiBell size={22} />
+              {history.length > 0 && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-black animate-pulse"></span>
+              )}
+            </button>
+
             <AnimatePresence>
-              {searchOpen && (
-                <motion.form
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: 220, opacity: 1 }}
-                  exit={{ width: 0, opacity: 0 }}
-                  transition={{ ease: "easeInOut", duration: 0.3 }}
-                  onSubmit={handleSearch}
-                  className="absolute right-10 top-1/2 -translate-y-1/2 overflow-hidden"
+              {isNotificationOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute right-0 mt-3 w-80 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[60]"
                 >
-                  <input
-                    type="text"
-                    placeholder="Movies, TV shows..."
-                    className="w-full bg-black/60 backdrop-blur-md border border-white/10 rounded-full px-5 py-1.5 text-sm text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 shadow-inner placeholder-gray-500"
-                    autoFocus
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    onBlur={() => !searchText && setSearchOpen(false)}
-                  />
-                </motion.form>
+                  <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-widest">Recent Activity</h3>
+                    {history.length > 0 && (
+                      <button
+                        onClick={clearHistory}
+                        className="text-[10px] text-gray-500 hover:text-red-500 uppercase font-black transition-colors"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
+                    {history.length === 0 ? (
+                      <div className="p-10 text-center">
+                        <FiBell className="mx-auto text-gray-700 mb-3" size={32} />
+                        <p className="text-xs text-gray-500">No recent notifications</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-white/5">
+                        {history.map((item) => (
+                          <div key={item.id} className="p-4 hover:bg-white/5 transition-colors group">
+                            <div className="flex gap-3">
+                              <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${item.type === 'success' ? 'bg-green-500' :
+                                item.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                                }`}></div>
+                              <div>
+                                <p className="text-xs text-gray-300 leading-relaxed">{item.message}</p>
+                                <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-tighter">
+                                  {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {history.length > 0 && (
+                    <div className="p-3 bg-white/5 text-center">
+                      <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest italic animate-pulse">Syncing Activities...</p>
+                    </div>
+                  )}
+                </motion.div>
               )}
             </AnimatePresence>
-            <button onClick={() => setSearchOpen(!searchOpen)} className="text-gray-300 hover:text-white transition">
-              <FiSearch size={22} />
-            </button>
           </div>
-
-          <button className="text-gray-300 hover:text-white transition">
-            <FiBell size={22} />
-          </button>
 
           {user ? (
             <button onClick={logout} className="text-gray-300 hover:text-white transition bg-zinc-800/80 hover:bg-red-500/20 hover:text-red-400 px-4 py-1.5 rounded-full flex items-center gap-2 border border-white/10 hover:border-red-500/30 backdrop-blur-sm">
@@ -152,7 +227,7 @@ const Navbar = () => {
         </div>
 
         <button
-          className="md:hidden relative z-50 p-2 text-gray-300 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+          className="md:hidden relative z-50 p-2  text-gray-300 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-red-500/50"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
@@ -209,9 +284,12 @@ const Navbar = () => {
                 exit: { opacity: 0, transition: { staggerChildren: 0.04, staggerDirection: -1 } }
               }}
             >
-              <motion.form
-                onSubmit={handleSearch}
-                className="w-full relative mb-10"
+              <motion.button
+                onClick={() => {
+                  setMenuOpen(false);
+                  setIsSearchOverlayOpen(true);
+                }}
+                className="w-full relative mb-10 group"
                 variants={{
                   hidden: { opacity: 0, y: 20 },
                   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
@@ -220,18 +298,12 @@ const Navbar = () => {
               >
                 <div className="relative group">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600 to-red-400 rounded-2xl blur opacity-20 group-focus-within:opacity-40 transition duration-500"></div>
-                  <input
-                    type="text"
-                    placeholder="Search movies, shows..."
-                    className="relative w-full bg-zinc-900/80 backdrop-blur-md border border-white/10 px-5 py-4 rounded-2xl text-white focus:outline-none focus:border-red-500 placeholder-gray-500 shadow-xl"
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                  />
-                  <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors">
+                  <div className="relative w-full bg-zinc-900/80 backdrop-blur-md border border-white/10 px-5 py-4 rounded-2xl text-gray-500 flex items-center justify-between shadow-xl">
+                    <span>Search movies, shows...</span>
                     <FiSearch size={22} />
-                  </button>
+                  </div>
                 </div>
-              </motion.form>
+              </motion.button>
 
               <div className="flex flex-col space-y-3 w-full">
                 {[
@@ -291,6 +363,11 @@ const Navbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <SearchOverlay
+        isOpen={isSearchOverlayOpen}
+        onClose={() => setIsSearchOverlayOpen(false)}
+      />
     </nav>
   );
 };

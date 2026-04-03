@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
+import { useNotification } from "./NotificationContext";
 
 export const AuthContext = createContext();
 
@@ -10,6 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [loginPromptMessage, setLoginPromptMessage] = useState(
     "Please log in to continue."
   );
+  const { showNotification } = useNotification();
   const pendingActionRef = useRef(null);
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export const AuthProvider = ({ children }) => {
       password,
       options: {
         data: metadata,
+        emailRedirectTo: window.location.origin,
       },
     });
     if (error) throw error;
@@ -55,6 +58,9 @@ export const AuthProvider = ({ children }) => {
   const signInWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
     });
     if (error) throw error;
     return data;
@@ -62,7 +68,12 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) console.error("Error signing out:", error.message);
+    if (error) {
+      console.error("Error signing out:", error.message);
+      showNotification("Error signing out", "error");
+    } else {
+      showNotification("Successfully logged out", "info");
+    }
   };
 
   const updateProfile = async (updates) => {
@@ -92,6 +103,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await signIn(email, password);
       setIsLoginPromptOpen(false);
+      showNotification("Welcome back!", "success");
 
       const pendingAction = pendingActionRef.current;
       pendingActionRef.current = null;
@@ -99,6 +111,7 @@ export const AuthProvider = ({ children }) => {
         pendingAction();
       }
     } catch (error) {
+      showNotification(error.message || "Login failed", "error");
       throw error;
     }
   };
@@ -124,6 +137,7 @@ export const AuthProvider = ({ children }) => {
       if (watchedIds.length >= 2) {
         setLimitType(type);
         setIsLimitReached(true);
+        showNotification("Guest limit reached! Login to unlock unlimited streaming.", "info");
         return true;
       }
       watchedIds.push(viewId);

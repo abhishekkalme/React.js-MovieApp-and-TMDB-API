@@ -18,39 +18,62 @@ const tmdb = axios.create({
 });
 
 export const fetchMovies = async (query = "", page = 1, type = "all") => {
-  const endpoint = query ? `search/multi` : `trending/${type}/day`;
-
-  const response = await tmdb.get(`/${endpoint}`, {
-    params: { query, page },
-  });
-
-  return response.data;
+  try {
+    const endpoint = query ? `search/multi` : `trending/${type}/day`;
+    const response = await tmdb.get(`/${endpoint}`, {
+      params: { query, page },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchMovies error:", error);
+    return { results: [], total_pages: 0, total_results: 0 };
+  }
 };
 
 export const searchCollections = async (query, page = 1) => {
-  const response = await tmdb.get(`/search/collection`, {
-    params: { query, page },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get(`/search/collection`, {
+      params: { query, page },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("searchCollections error:", error);
+    return { results: [], total_pages: 0, total_results: 0 };
+  }
 };
 
 export const fetchCollectionDetails = async (collectionId) => {
-  const response = await tmdb.get(`/collection/${collectionId}`);
-  return response.data;
+  try {
+    const response = await tmdb.get(`/collection/${collectionId}`);
+    return response.data;
+  } catch (error) {
+    console.error("fetchCollectionDetails error:", error);
+    return null;
+  }
 };
 
 export const fetchMovieDetails = async (movieId) => {
-  const response = await tmdb.get(`/movie/${movieId}`, {
-    params: {
-      append_to_response: "credits,videos,recommendations,release_dates,reviews,images,watch/providers",
-    },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get(`/movie/${movieId}`, {
+      params: {
+        append_to_response: "credits,videos,recommendations,release_dates,reviews,images,watch/providers",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchMovieDetails error:", error);
+    return null;
+  }
 };
 
 export const fetchReleaseDates = async (movieId) => {
-  const response = await tmdb.get(`/movie/${movieId}/release_dates`);
-  return response.data;
+  try {
+    const response = await tmdb.get(`/movie/${movieId}/release_dates`);
+    return response.data;
+  } catch (error) {
+    console.error("fetchReleaseDates error:", error);
+    return { results: [] };
+  }
 };
 
 export const fetchMovieCertifications = async (id) => {
@@ -66,10 +89,13 @@ export const fetchMovieCertifications = async (id) => {
 };
 
 export const fetchGenres = async (type = "movie") => {
-  const res = await fetch(
-    `${BASE_URL}/genre/${type}/list?api_key=${API_KEY}&language=en-US`
-  );
-  return res.json();
+  try {
+    const response = await tmdb.get(`/genre/${type}/list`);
+    return response.data;
+  } catch (error) {
+    console.error("fetchGenres error:", error);
+    return { genres: [] };
+  }
 };
 
 export const fetchByCategory = async (
@@ -77,80 +103,121 @@ export const fetchByCategory = async (
   genreId = "",
   page = 1
 ) => {
-  const url = `${BASE_URL}/discover/${type}?api_key=${API_KEY}&language=en-US&sort_by=popularity.desc&page=${page}${
-    genreId ? `&with_genres=${genreId}` : ""
-  }`;
-  const res = await fetch(url);
-  return res.json();
+  try {
+    const response = await tmdb.get(`/discover/${type}`, {
+      params: {
+        with_genres: genreId,
+        page,
+        sort_by: "popularity.desc"
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchByCategory error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 export const fetchTrendingMovies = async (page = 1) => {
-  const response = await tmdb.get("/trending/movie/week", {
-    params: { page },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get("/trending/movie/week", {
+      params: { page },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchTrendingMovies error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 export const fetchTopRatedMovies = async (page = 1) => {
-  const response = await tmdb.get("/movie/top_rated", {
-    params: { page },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get("/movie/top_rated", {
+      params: { page },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchTopRatedMovies error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 export const fetchLatestMovies = async (page = 1) => {
-  const response = await tmdb.get("/movie/now_playing", {
-    params: { page },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get("/movie/now_playing", {
+      params: { page },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchLatestMovies error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 export const fetchTvDetails = async (id) => {
-  const response = await tmdb.get(`/tv/${id}`, {
-    params: {
-      append_to_response: "credits,videos,recommendations,content_ratings",
-    },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get(`/tv/${id}`, {
+      params: {
+        append_to_response: "credits,videos,recommendations,content_ratings",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchTvDetails error:", error);
+    return null;
+  }
 };
 
 export const fetchLatestTVShows = async (page = 1) => {
-  const response = await tmdb.get("/tv/on_the_air", {
-    params: { page },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get("/tv/on_the_air", {
+      params: { page },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchLatestTVShows error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 export const fetchTrendingTV = async (page = 1) => {
-  const response = await tmdb.get("/trending/tv/week", {
-    params: { page },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get("/trending/tv/week", {
+      params: { page },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchTrendingTV error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 export const fetchTopRatedTV = async (page = 1) => {
-  const response = await tmdb.get("/tv/top_rated", {
-    params: { page },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get("/tv/top_rated", {
+      params: { page },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchTopRatedTV error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 export const fetchSeasonEpisodes = async (tvId, seasonNumber) => {
-  const response = await tmdb.get(`/tv/${tvId}/season/${seasonNumber}`);
-  return response.data;
+  try {
+    const response = await tmdb.get(`/tv/${tvId}/season/${seasonNumber}`);
+    return response.data;
+  } catch (error) {
+    console.error("fetchSeasonEpisodes error:", error);
+    return { episodes: [] };
+  }
 };
 
 export const fetchMovieWatchProviders = async (movieId) => {
   try {
-    const response = await fetch(
-      `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${
-        import.meta.env.VITE_TMDB_API_KEY
-      }`
-    );
-    const data = await response.json();
-
-    const providerData = data.results?.IN || data.results?.US || null;
-
+    const response = await tmdb.get(`/movie/${movieId}/watch/providers`);
+    const providerData = response.data.results?.IN || response.data.results?.US || null;
     return providerData;
   } catch (error) {
     console.error("Failed to fetch watch providers:", error);
@@ -159,51 +226,86 @@ export const fetchMovieWatchProviders = async (movieId) => {
 };
 
 export const fetchExternalIds = async (id, type = "movie") => {
-  const response = await tmdb.get(`/${type}/${id}/external_ids`);
-  return response.data;
+  try {
+    const response = await tmdb.get(`/${type}/${id}/external_ids`);
+    return response.data;
+  } catch (error) {
+    console.error("fetchExternalIds error:", error);
+    return null;
+  }
 };
 
 export const fetchPersonDetails = async (id) => {
-  const response = await tmdb.get(`/person/${id}?append_to_response=combined_credits,external_ids,images`);
-  return response.data;
+  try {
+    const response = await tmdb.get(`/person/${id}?append_to_response=combined_credits,external_ids,images`);
+    return response.data;
+  } catch (error) {
+    console.error("fetchPersonDetails error:", error);
+    return null;
+  }
 };
 
 export const fetchKeywords = async (movieId, type = "movie") => {
-  const response = await tmdb.get(`/${type}/${movieId}/keywords`);
-  return response.data;
+  try {
+    const response = await tmdb.get(`/${type}/${movieId}/keywords`);
+    return response.data;
+  } catch (error) {
+    console.error("fetchKeywords error:", error);
+    return { keywords: [] };
+  }
 };
 
 export const fetchCompanyDetails = async (id) => {
-  const response = await tmdb.get(`/company/${id}`);
-  return response.data;
+  try {
+    const response = await tmdb.get(`/company/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("fetchCompanyDetails error:", error);
+    return null;
+  }
 };
 
 export const fetchContentByDiscovery = async (discoveryType, id, page = 1, mediaType = "movie") => {
-  const params = {
-    page,
-    sort_by: "popularity.desc",
-  };
-  
-  if (discoveryType === "keyword") params.with_keywords = id;
-  if (discoveryType === "company") params.with_companies = id;
-  if (discoveryType === "genre") params.with_genres = id;
+  try {
+    const params = {
+      page,
+      sort_by: "popularity.desc",
+    };
+    
+    if (discoveryType === "keyword") params.with_keywords = id;
+    if (discoveryType === "company") params.with_companies = id;
+    if (discoveryType === "genre") params.with_genres = id;
 
-  const response = await tmdb.get(`/discover/${mediaType}`, { params });
-  return response.data;
+    const response = await tmdb.get(`/discover/${mediaType}`, { params });
+    return response.data;
+  } catch (error) {
+    console.error("fetchContentByDiscovery error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 export const getTVDetails = async (id) => {
-  const res = await tmdb.get(
-    `/tv/${id}?append_to_response=videos,credits,images,reviews,recommendations,watch/providers`
-  );
-  return res.data;
+  try {
+    const res = await tmdb.get(
+      `/tv/${id}?append_to_response=videos,credits,images,reviews,recommendations,watch/providers`
+    );
+    return res.data;
+  } catch (error) {
+    console.error("getTVDetails error:", error);
+    return null;
+  }
 };
 
 export const fetchUpcomingMovies = async (page = 1) => {
-  const response = await tmdb.get("/movie/upcoming", {
-    params: { page },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get("/movie/upcoming", {
+      params: { page },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchUpcomingMovies error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 export const fetchContentByProvider = async (
@@ -238,25 +340,35 @@ export const fetchContentByProvider = async (
 };
 
 export const fetchAnimeMovies = async (page = 1, sortBy = "popularity.desc", genre = "16") => {
-  const response = await tmdb.get("/discover/movie", {
-    params: {
-      with_genres: genre,
-      sort_by: sortBy === "trending" ? "popularity.desc" : sortBy,
-      page,
-    },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get("/discover/movie", {
+      params: {
+        with_genres: genre,
+        sort_by: sortBy === "trending" ? "popularity.desc" : sortBy,
+        page,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchAnimeMovies error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 export const fetchAnimeTV = async (page = 1, sortBy = "popularity.desc", genre = "16") => {
-  const response = await tmdb.get("/discover/tv", {
-    params: {
-      with_genres: genre,
-      sort_by: sortBy === "trending" ? "popularity.desc" : sortBy,
-      page,
-    },
-  });
-  return response.data;
+  try {
+    const response = await tmdb.get("/discover/tv", {
+      params: {
+        with_genres: genre,
+        sort_by: sortBy === "trending" ? "popularity.desc" : sortBy,
+        page,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("fetchAnimeTV error:", error);
+    return { results: [], total_pages: 0 };
+  }
 };
 
 /**
@@ -313,6 +425,7 @@ export const fetchAdvancedFilters = async ({
   yearFrom = "",
   yearTo = "",
   provider = "",
+  page = 1,
 }) => {
   const dateGteKey = type === "movie" ? "primary_release_date.gte" : "first_air_date.gte";
   const dateLteKey = type === "movie" ? "primary_release_date.lte" : "first_air_date.lte";

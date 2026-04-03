@@ -5,11 +5,13 @@ import { LibraryContext } from "../context/LibraryContext";
 import MovieCard from "../components/MovieCard";
 import { PRESET_AVATARS, MESSAGES } from "../constants";
 import { Link } from "react-router-dom";
+import { useNotification } from "../context/NotificationContext";
 import { FiEdit3, FiGlobe, FiGrid, FiSettings, FiCheck, FiLogOut } from "react-icons/fi";
 
 const Profile = () => {
   const { user, updateProfile, logout } = useContext(AuthContext);
   const { libraryItems, removeFromLibrary } = useContext(LibraryContext);
+  const { showNotification } = useNotification();
 
   const [activeTab, setActiveTab] = useState("mylist");
   const [isEditing, setIsEditing] = useState(false);
@@ -25,9 +27,10 @@ const Profile = () => {
   const handleSaveProfile = async () => {
     try {
       await updateProfile({ username: editName, avatar: editAvatar });
+      showNotification("Profile updated successfully!", "success");
       setIsEditing(false);
     } catch (err) {
-      alert("Failed to update profile: " + err.message);
+      showNotification("Failed to update profile: " + err.message, "error");
     }
   };
 

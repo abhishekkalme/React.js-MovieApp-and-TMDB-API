@@ -1,11 +1,13 @@
 import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from "react";
 import { AuthContext } from "./AuthContext";
+import { useNotification } from "./NotificationContext";
 
 export const LibraryContext = createContext();
 
 export const LibraryProvider = ({ children }) => {
     const [libraryItems, setLibraryItems] = useState([]);
     const { requireLogin, user } = useContext(AuthContext);
+    const { showNotification } = useNotification();
 
     // Load from local storage on mount (or when user changes)
     useEffect(() => {
@@ -35,6 +37,7 @@ export const LibraryProvider = ({ children }) => {
                 if (exists) {
                     return prev.filter((i) => i.id !== item.id);
                 } else {
+                    showNotification(`${item.title || item.name} added to your library!`, "success");
                     return [{ ...item, addedAt: new Date().toISOString() }, ...prev];
                 }
             });
@@ -48,7 +51,9 @@ export const LibraryProvider = ({ children }) => {
     }, [libraryItems]);
 
     const removeFromLibrary = useCallback((id) => {
-        setLibraryItems((prev) => prev.filter((item) => item.id !== id));
+        setLibraryItems((prev) => {
+            return prev.filter((item) => item.id !== id);
+        });
     }, []);
 
     const addToLibrary = useCallback((item) => {

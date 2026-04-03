@@ -317,12 +317,12 @@ const Home = () => {
                 </h3>
 
                 <p className="text-gray-300 mb-6 leading-relaxed text-sm md:text-base">
-                  We noticed you're using <strong className="text-yellow-500">Brave</strong> or{" "}
+                  We noticed you&apos;re using <strong className="text-yellow-500">Brave</strong> or{" "}
                   <strong className="text-yellow-500">Edge</strong>.
                   <br /><br />
                   To ensure the video player works correctly, please{" "}
                   <strong className="text-white">
-                    turn off your browser's "Shields" or "Tracking Prevention"
+                    turn off your browser&apos;s &quot;Shields&quot; or &quot;Tracking Prevention&quot;
                   </strong>{" "}
                   specifically for this site—otherwise the stream will stay blank!
                   <br /><br />
@@ -337,7 +337,7 @@ const Home = () => {
                     }}
                     className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 rounded-full transition shadow-lg shadow-yellow-600/20"
                   >
-                    Got It, I'll turn Shields off
+                    Got It, I&apos;ll turn Shields off
                   </button>
                   <a
                     href="https://www.google.com/chrome/"

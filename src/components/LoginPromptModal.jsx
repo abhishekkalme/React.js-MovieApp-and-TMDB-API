@@ -3,7 +3,7 @@ import { FiX, FiLock, FiMail, FiUser, FiCheckCircle, FiShield } from "react-icon
 import { FcGoogle } from "react-icons/fc";
 import { AuthContext } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const LoginPromptModal = () => {
   const {
@@ -18,6 +18,7 @@ const LoginPromptModal = () => {
     limitType
   } = useContext(AuthContext);
 
+  const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -250,7 +251,7 @@ const LoginPromptModal = () => {
                   </button>
                 </form>
 
-                <div className="text-center mt-8 pt-6 border-t border-white/5">
+                <div className="text-center mt-8 pt-6 border-t border-white/5 space-y-4">
                   <p className="text-gray-500 text-xs font-medium">
                     {isSignUp ? "Already have an account?" : "New to CineVerse?"}{" "}
                     <button
@@ -260,6 +261,18 @@ const LoginPromptModal = () => {
                       {isSignUp ? "Log In" : "Sign Up"}
                     </button>
                   </p>
+
+                  {isLimitReached && (
+                    <button
+                      onClick={() => {
+                        dismissLoginPrompt();
+                        navigate("/");
+                      }}
+                      className="w-full text-xs font-black uppercase tracking-[0.2em] text-gray-500 hover:text-white transition-colors py-2"
+                    >
+                      Wait, take me back Home
+                    </button>
+                  )}
                 </div>
               </motion.div>
             )}

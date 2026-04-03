@@ -1,11 +1,13 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import FloatingActions from "./components/FloatingActions";
 import LoginPromptModal from "./components/LoginPromptModal";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { MESSAGES, APP_CONFIG } from "./constants";
 import { FiX, FiGithub } from "react-icons/fi";
+import { useNotification } from "./context/NotificationContext";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -38,6 +40,7 @@ const App = () => {
   const [showGithubPrompt, setShowGithubPrompt] = React.useState(false);
   const [isGithubVisible, setIsGithubVisible] = React.useState(false);
   const [showPageLoader, setShowPageLoader] = React.useState(true);
+  const { showNotification } = useNotification();
 
   React.useEffect(() => {
     const hideLoader = () => {
@@ -75,6 +78,21 @@ const App = () => {
       clearTimeout(unmountTimer);
     };
   }, []);
+
+  React.useEffect(() => {
+    // Show welcome toast once per session
+    const welcomeShown = sessionStorage.getItem("welcome_shown");
+    if (!welcomeShown) {
+      setTimeout(() => {
+        showNotification("Welcome back to Movie Explorer! 🎬 Enjoy your stream.", "success");
+        sessionStorage.setItem("welcome_shown", "true");
+      }, 3000);
+    }
+
+
+
+    return () => clearTimeout(trendingTimer);
+  }, [showNotification]);
 
   const handleCloseGithub = () => {
     setIsGithubVisible(false);
@@ -118,12 +136,14 @@ const App = () => {
             </Routes>
           </Suspense>
 
+          <Footer />
+
           {showGithubPrompt && (
             <div
               className={`fixed left-1/2 -translate-x-1/2 bottom-6 z-[95] w-[92%] max-w-md
-            transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
-            ${isGithubVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-95"}
-            `}
+              transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
+              ${isGithubVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-95"}
+              `}
             >
               <div className="relative bg-black/60 border border-white/10 rounded-2xl px-6 py-5 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-xl overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
