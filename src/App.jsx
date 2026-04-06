@@ -44,16 +44,25 @@ const App = () => {
 
   React.useEffect(() => {
     const hideLoader = () => {
-      window.setTimeout(() => setShowPageLoader(false), 280);
+      setShowPageLoader(false);
     };
 
-    if (document.readyState === "complete") {
-      hideLoader();
-      return;
+    // Robust fallback to ensure loader disappears even if 'load' event is delayed
+    const fallbackTimer = setTimeout(hideLoader, 1500);
+
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+      const timer = setTimeout(hideLoader, 300);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(fallbackTimer);
+      };
     }
 
     window.addEventListener("load", hideLoader);
-    return () => window.removeEventListener("load", hideLoader);
+    return () => {
+      window.removeEventListener("load", hideLoader);
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -91,7 +100,7 @@ const App = () => {
 
 
 
-    return () => clearTimeout(trendingTimer);
+    return () => { };
   }, [showNotification]);
 
   const handleCloseGithub = () => {
