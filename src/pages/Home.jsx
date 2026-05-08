@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { fetchTrendingMovies, fetchTopRatedMovies, fetchLatestMovies, fetchTrendingTV, fetchTopRatedTV, fetchUpcomingMovies, fetchMovieDetails } from "../api/tmdb";
 import Row from "../components/Row";
+import Top10Row from "../components/Top10Row";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import Slider from "react-slick";
@@ -304,15 +305,18 @@ const Home = () => {
             items={watched.slice(0, 15)}
             loading={loading}
             onRemoveItem={removeFromLibrary}
-            onClearAll={() => { }} // Library doesn't have clearAll yet, or we can add it later
+            onClearAll={() => { }}
           />
         )}
-        <Row title="Trending Now" items={trendingMovies} loading={loading} />
-        <Row title="Top Rated Movies" items={topRatedMovies} loading={loading} />
-        <Row title="Upcoming Movies" items={upcomingMovies} loading={loading} />
+        <Top10Row title="Trending" items={trendingMovies.slice(0, 10)} loading={loading} />
+        <Top10Row title="TV Trending" items={trendingTV.slice(0, 10)} type="tv" loading={loading} />
+        <Top10Row title="Top Rated Movies" items={topRatedMovies.slice(0, 10)} loading={loading} />
+        <Top10Row title="Top Rated TV" items={topRatedTV} type="tv" loading={loading} />
         <Row title="New Releases" items={nowPlaying} loading={loading} />
-        <Row title="Trending TV Shows" items={trendingTV} type="tv" loading={loading} />
-        <Row title="Top Rated TV" items={topRatedTV} type="tv" loading={loading} />
+        <Row title="Upcoming Movies" items={upcomingMovies} loading={loading} />
+        {/* <Row title="Trending Now" items={trendingMovies} loading={loading} /> */}
+        {/* <Row title="Top Rated Movies" items={topRatedMovies} loading={loading} /> */}
+        {/* <Row title="Trending TV Shows" items={trendingTV} type="tv" loading={loading} /> */}
       </div>
     </div>
   );
