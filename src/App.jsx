@@ -1,10 +1,14 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import FloatingActions from "./components/FloatingActions";
 import LoginPromptModal from "./components/LoginPromptModal";
+import InstallPrompt from "./components/InstallPrompt";
+import GithubPrompt from "./components/GithubPrompt";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { PopupProvider, usePopupManager } from "./context/PopupContext";
 import { MESSAGES, APP_CONFIG } from "./constants";
 import { FiX, FiGithub } from "react-icons/fi";
 import { useNotification } from "./context/NotificationContext";
@@ -29,25 +33,20 @@ const PersonDetails = lazy(() => import("./pages/PersonDetails"));
 const DiscoveryPage = lazy(() => import("./pages/DiscoveryPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-
 const LoadingFallback = () => (
   <div className="h-screen bg-black flex items-center justify-center">
     <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
   </div>
 );
 
-const App = () => {
-  const [showGithubPrompt, setShowGithubPrompt] = React.useState(false);
-  const [isGithubVisible, setIsGithubVisible] = React.useState(false);
-  const [showPageLoader, setShowPageLoader] = React.useState(true);
+
+const AppContent = () => {
+  const popupManager = usePopupManager();
+  const [showPageLoader, setShowPageLoader] = useState(true);
   const { showNotification } = useNotification();
 
-  React.useEffect(() => {
-    const hideLoader = () => {
-      setShowPageLoader(false);
-    };
-
-    // Robust fallback to ensure loader disappears even if 'load' event is delayed
+  useEffect(() => {
+    const hideLoader = () => setShowPageLoader(false);
     const fallbackTimer = setTimeout(hideLoader, 1500);
 
     if (document.readyState === "complete" || document.readyState === "interactive") {
@@ -65,162 +64,57 @@ const App = () => {
     };
   }, []);
 
-  React.useEffect(() => {
-    let hideTimer;
-    let unmountTimer;
+  return (
+    <div className="w-full relative overflow-x-hidden min-h-screen">
+      {showPageLoader && (
+        <div className="fixed inset-0 z-[130] bg-black flex items-center justify-center">
+          <div className="w-10 h-10 border-4 border-red-600/80 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
 
-    const showTimer = setTimeout(() => {
-      setShowGithubPrompt(true);
-      setTimeout(() => setIsGithubVisible(true), 50);
+      <Navbar />
 
-      hideTimer = setTimeout(() => {
-        setIsGithubVisible(false);
-        unmountTimer = setTimeout(() => {
-          setShowGithubPrompt(false);
-        }, 300);
-      }, 5000);
-    }, 5000);
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/movie/:id" element={<MovieDetails />} />
+          <Route path="/search" element={<SearchResult />} />
+          <Route path="/movies" element={<Movies />} />
+          <Route path="/tv" element={<WebSeries />} />
+          <Route path="/tv/:id" element={<TVDetails />} />
+          <Route path="/platform" element={<Platforms />} />
+          <Route path="/platform/:providerId" element={<PlatformPage />} />
+          <Route path="/anime" element={<Anime />} />
+          <Route path="/watch/:type/:id" element={<Watch />} />
+          <Route path="/watch/:type/:id/:season/:episode" element={<Watch />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/collection/:id" element={<CollectionDetails />} />
+          <Route path="/person/:id" element={<PersonDetails />} />
+          <Route path="/discovery/:type/:id/:name" element={<DiscoveryPage />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
 
-    return () => {
-      clearTimeout(showTimer);
-      clearTimeout(hideTimer);
-      clearTimeout(unmountTimer);
-    };
-  }, []);
+      <Footer />
+      <GithubPrompt />
+      <FloatingActions />
+      <LoginPromptModal popupManager={popupManager} />
+      <InstallPrompt popupManager={popupManager} />
+      <GithubPrompt popupManager={popupManager} />
+    </div>
+  );
+};
 
-  React.useEffect(() => {
-    // Show welcome toast once per session
-    const welcomeShown = sessionStorage.getItem("welcome_shown");
-    if (!welcomeShown) {
-      setTimeout(() => {
-        showNotification("Welcome back to Movie Explorer! 🎬 Enjoy your stream.", "success");
-        sessionStorage.setItem("welcome_shown", "true");
-      }, 3000);
-    }
-
-
-
-    return () => { };
-  }, [showNotification]);
-
-  const handleCloseGithub = () => {
-    setIsGithubVisible(false);
-    setTimeout(() => {
-      setShowGithubPrompt(false);
-    }, 300);
-  };
-
+const App = () => {
   return (
     <ErrorBoundary>
-      <Router>
-        <div className="w-full relative overflow-x-hidden min-h-screen">
-          {showPageLoader && (
-            <div className="fixed inset-0 z-[130] bg-black flex items-center justify-center">
-              <div className="w-10 h-10 border-4 border-red-600/80 border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
-
-          <Navbar />
-
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/movie/:id" element={<MovieDetails />} />
-              <Route path="/search" element={<SearchResult />} />
-              <Route path="/movies" element={<Movies />} />
-              <Route path="/tv" element={<WebSeries />} />
-              <Route path="/tv/:id" element={<TVDetails />} />
-              <Route path="/platform" element={<Platforms />} />
-              <Route path="/platform/:providerId" element={<PlatformPage />} />
-              <Route path="/anime" element={<Anime />} />
-              <Route path="/watch/:type/:id" element={<Watch />} />
-              <Route path="/watch/:type/:id/:season/:episode" element={<Watch />} />
-              <Route path="/community" element={<Community />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/collection/:id" element={<CollectionDetails />} />
-              <Route path="/person/:id" element={<PersonDetails />} />
-              <Route path="/discovery/:type/:id/:name" element={<DiscoveryPage />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-
-          <Footer />
-
-          {showGithubPrompt && (
-            <div
-              className={`fixed left-1/2 -translate-x-1/2 bottom-6 z-[95] w-[92%] max-w-md
-              transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
-              ${isGithubVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-95"}
-              `}
-            >
-              <div className="relative bg-black/60 border border-white/10 rounded-2xl px-6 py-5 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-xl overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-                <button
-                  onClick={handleCloseGithub}
-                  className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all"
-                  aria-label="Close popup"
-                >
-                  <FiX size={16} />
-                </button>
-
-                <div className="pr-2">
-                  <div className="flex items-start gap-4 mb-3">
-                    <div className="flex-shrink-0 text-2xl h-10 w-10 flex items-center justify-center bg-white/10 rounded-full border border-white/5 shadow-inner">
-                      🎬
-                    </div>
-                    <div>
-                      <h3 className="text-white font-semibold text-lg tracking-wide">Enjoying the stream?</h3>
-                      <p className="text-sm text-gray-400 leading-relaxed mt-1">
-                        {MESSAGES.AD_TAB_WARNING}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2.5 mt-5 flex-wrap">
-                    <button
-                      onClick={() =>
-                        window.alert("Press Ctrl + D (or Cmd + D on Mac) to bookmark this page.")
-                      }
-                      className="flex-1 min-w-[120px] text-xs font-medium text-gray-300 bg-white/5 hover:bg-white/15 hover:text-white border border-white/10 rounded-xl px-4 py-2.5 transition-all duration-300 flex items-center justify-center gap-1.5"
-                    >
-                      ⭐ Bookmark
-                    </button>
-
-                    <a
-                      href="/community"
-                      className="flex-1 min-w-[120px] text-xs font-medium text-gray-300 bg-white/5 hover:bg-white/15 hover:text-white border border-white/10 rounded-xl px-4 py-2.5 transition-all duration-300 flex items-center justify-center gap-1.5"
-                    >
-                      💬 Community
-                    </a>
-
-                    <a
-                      href="https://github.com/abhishekkalme"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 min-w-[120px] text-xs font-medium text-gray-300 bg-white/5 hover:bg-white/15 hover:text-white border border-white/10 rounded-xl px-4 py-2.5 transition-all duration-300 flex items-center justify-center gap-1.5"
-                    >
-                      <FiGithub size={14} className="mb-0.5" />
-                      GitHub
-                    </a>
-
-                    <button
-                      onClick={handleCloseGithub}
-                      className="w-full text-xs text-black bg-gradient-to-r from-white to-gray-300 hover:from-white hover:to-white rounded-xl px-4 py-2.5 transition-all duration-300 font-bold shadow-[0_0_15px_rgba(255,255,255,0.3)] hover:shadow-[0_0_20px_rgba(255,255,255,0.5)]"
-                    >
-                      Got it, thanks!
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <FloatingActions />
-          <LoginPromptModal />
-        </div>
-      </Router>
+      <PopupProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </PopupProvider>
     </ErrorBoundary>
   );
 };

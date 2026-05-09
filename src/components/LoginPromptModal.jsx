@@ -5,7 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 
-const LoginPromptModal = () => {
+const LoginPromptModal = ({ popupManager }) => {
   const {
     isLoginPromptOpen,
     loginPromptMessage,
@@ -29,6 +29,18 @@ const LoginPromptModal = () => {
   const [signupSuccess, setSignupSuccess] = useState(false);
 
   useEffect(() => {
+    if (isLoginPromptOpen || isLimitReached) {
+      popupManager?.register("login", "center");
+    } else {
+      popupManager?.unregister("login");
+    }
+
+    return () => {
+      popupManager?.unregister("login");
+    };
+  }, [isLoginPromptOpen, isLimitReached, popupManager]);
+
+  useEffect(() => {
     if (isLoginPromptOpen || isLimitReached) return;
     setEmail("");
     setUsername("");
@@ -40,6 +52,8 @@ const LoginPromptModal = () => {
   }, [isLoginPromptOpen, isLimitReached]);
 
   if (!isLoginPromptOpen && !isLimitReached) return null;
+
+  const zIndex = popupManager?.getHighestZIndex() || 120;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,6 +102,7 @@ const LoginPromptModal = () => {
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative"
+        style={{ zIndex: zIndex + 1 }}
       >
         <button
           onClick={dismissLoginPrompt}

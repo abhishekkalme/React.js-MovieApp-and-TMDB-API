@@ -1,0 +1,26 @@
+{
+  "name": "Movie Explorer",
+  "short_name": "MovieExp",
+  "description": "Discover, search, and explore movies, TV shows, and anime with a premium cinematic experience",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#e50914",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/src/assets/fevicon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/src/assets/fevicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["entertainment", "lifestyle"],
+  "prefer_related_applications": false
+}
